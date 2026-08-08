@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { Plus, PencilSimple, Trash, Key, X } from '@phosphor-icons/react'
 import { useAuth } from '../../context/AuthContext'
-import PageHeader from '../../components/admin/PageHeader'
 import { AdminButton, AdminInput, AdminSelect, Field } from '../../components/admin/ui/FormControls'
 import { listStaff, createStaff, updateStaff, deleteStaff, resetPassword } from '../../lib/staffApi'
 
@@ -184,25 +183,29 @@ function StaffPageInner() {
   }
 
   return (
-    <div className="mx-auto max-w-[1200px] p-6 lg:p-8">
-      <PageHeader title="Kelola Staff" subtitle="Atur akun & akses tim yang mengelola toko kamu.">
+    <div className="mx-auto flex max-w-[1240px] flex-col gap-4 p-4 lg:p-6">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-[24px] font-semibold tracking-tight text-[var(--adm-ink)]">Kelola Staff</h1>
+          <p className="mt-1 text-[14px] text-[var(--adm-muted)]">Atur akun & akses tim yang mengelola toko kamu.</p>
+        </div>
         <AdminButton onClick={() => setFormModal({ isNew: true, initial: null })}>
           <Plus size={18} weight="bold" /> Tambah Staff
         </AdminButton>
-      </PageHeader>
+      </div>
 
-      <div className="adm-card flex flex-col gap-6 p-6">
-        <p className="text-[20px] font-medium text-black">Semua Staff</p>
+      <div className="adm-tile flex flex-col gap-5 p-5">
+        <p className="text-[15px] font-semibold text-[var(--adm-ink)]">Semua Staff</p>
 
         <div className="overflow-x-auto">
           <table className="w-full min-w-[720px] text-left">
             <thead>
-              <tr className="rounded-[12px] bg-[var(--adm-bg)] text-[16px] text-[var(--adm-muted)]">
-                <th className="rounded-l-[12px] py-4 pl-6 font-normal">Nama</th>
-                <th className="py-4 font-normal">Jabatan</th>
-                <th className="py-4 font-normal">Email</th>
-                <th className="py-4 font-normal">Role</th>
-                <th className="rounded-r-[12px] py-4 pr-6 font-normal">Aksi</th>
+              <tr className="bg-[var(--adm-bg)] text-[13px] font-medium text-[var(--adm-muted)]">
+                <th className="rounded-l-[10px] py-3 pl-5 font-medium">Nama</th>
+                <th className="py-3 font-medium">Jabatan</th>
+                <th className="py-3 font-medium">Email</th>
+                <th className="py-3 font-medium">Role</th>
+                <th className="rounded-r-[10px] py-3 pr-5 font-medium">Aksi</th>
               </tr>
             </thead>
             <tbody>
@@ -222,41 +225,41 @@ function StaffPageInner() {
                 </tr>
               )}
               {!loading && !loadError && staff.map((s) => (
-                <tr key={s.id} className="rounded-[12px]">
-                  <td className="py-3.5 pl-6 text-[16px] text-black">
+                <tr key={s.id} className="border-b border-[var(--adm-border)] last:border-0">
+                  <td className="py-3 pl-5 text-[14px] font-medium text-[var(--adm-ink)]">
                     {s.name}
-                    {s.id === currentUser?.id && <span className="ml-2 text-[12px] text-[var(--adm-muted)]">(kamu)</span>}
+                    {s.id === currentUser?.id && <span className="ml-2 text-[12px] font-normal text-[var(--adm-muted)]">(kamu)</span>}
                   </td>
-                  <td className="py-3.5 pr-4 text-[16px] text-black">{s.job || '—'}</td>
-                  <td className="py-3.5 pr-4 text-[16px] text-black">{s.email}</td>
-                  <td className="py-3.5 pr-4">
+                  <td className="py-3 pr-4 text-[14px] text-[var(--adm-text)]">{s.job || '—'}</td>
+                  <td className="py-3 pr-4 text-[14px] text-[var(--adm-text)]">{s.email}</td>
+                  <td className="py-3 pr-4">
                     <RoleBadge role={s.role} />
                   </td>
-                  <td className="py-3.5 pr-6">
+                  <td className="py-3 pr-5">
                     <div className="flex items-center gap-1">
                       <button
                         onClick={() => setFormModal({ isNew: false, initial: s })}
-                        className="flex size-10 items-center justify-center rounded-full border border-[var(--adm-border)] bg-white text-black hover:bg-[var(--adm-bg)]"
+                        className="flex size-9 items-center justify-center rounded-lg border border-[var(--adm-border)] bg-white text-black hover:bg-[var(--adm-bg)]"
                         aria-label="Edit"
                       >
-                        <PencilSimple size={20} />
+                        <PencilSimple size={18} />
                       </button>
                       <button
                         onClick={() => setResetModal(s)}
-                        className="flex size-10 items-center justify-center rounded-full border border-[var(--adm-border)] bg-white text-black hover:bg-[var(--adm-bg)]"
+                        className="flex size-9 items-center justify-center rounded-lg border border-[var(--adm-border)] bg-white text-black hover:bg-[var(--adm-bg)]"
                         aria-label="Reset Password"
                       >
-                        <Key size={20} />
+                        <Key size={18} />
                       </button>
                       <button
                         onClick={() => {
                           setDeleteError('')
                           setConfirmDel(s)
                         }}
-                        className="flex size-10 items-center justify-center rounded-full border border-[var(--adm-border)] bg-white text-black hover:bg-[var(--adm-bg)]"
+                        className="flex size-9 items-center justify-center rounded-lg border border-[var(--adm-border)] bg-white text-black hover:bg-[var(--adm-bg)]"
                         aria-label="Hapus"
                       >
-                        <Trash size={20} />
+                        <Trash size={18} />
                       </button>
                     </div>
                   </td>

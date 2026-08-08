@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom'
 import { MagnifyingGlass, CaretDown, SignOut, X } from '@phosphor-icons/react'
 import { useAuth } from '../../context/AuthContext'
 import { ADMIN_LOGIN_SLUG } from '../../config/features'
-import dmbLogo from '../../assets/logo-dmb.png'
 import SearchModal from './SearchModal'
 
 function LogoutModal({ onConfirm, onCancel }) {
@@ -91,25 +90,21 @@ export default function Topbar() {
 
   return (
     <>
-      <header className="flex h-[68px] items-center gap-4 rounded-[12px] bg-white px-4">
-        {/* Brand */}
-        <div className="flex items-center gap-2 pr-2">
-          <img src={dmbLogo} alt="DMB Moto Shop" className="h-9 w-auto" />
-        </div>
+      <header className="flex h-[60px] items-center gap-4 rounded-[16px] bg-white px-4">
+        {/* Search trigger (left-aligned, wide) */}
+        <button
+          onClick={() => setSearchOpen(true)}
+          className="flex h-10 max-w-[520px] flex-1 items-center gap-2 rounded-xl bg-[var(--adm-bg)] px-3.5 text-left"
+        >
+          <MagnifyingGlass size={18} className="text-[var(--adm-muted)]" />
+          <span className="flex-1 text-[15px] text-[var(--adm-muted)]">Cari produk, kategori…</span>
+          <span className="hidden shrink-0 items-center gap-0.5 sm:flex">
+            <kbd className="rounded border border-[var(--adm-border)] bg-white px-1.5 py-0.5 text-[11px] leading-none text-[var(--adm-muted)]">⌘</kbd>
+            <kbd className="rounded border border-[var(--adm-border)] bg-white px-1.5 py-0.5 text-[11px] leading-none text-[var(--adm-muted)]">K</kbd>
+          </span>
+        </button>
 
         <div className="ml-auto flex items-center gap-3">
-          {/* Search trigger */}
-          <button
-            onClick={() => setSearchOpen(true)}
-            className="flex h-11 w-[280px] items-center gap-2 rounded-[100px] bg-[var(--adm-bg)] px-4 text-left"
-          >
-            <MagnifyingGlass size={18} className="text-[var(--adm-muted)]" />
-            <span className="flex-1 text-[16px] text-[var(--adm-muted)]">Cari apa saja</span>
-            <span className="hidden shrink-0 items-center gap-0.5 sm:flex">
-              <kbd className="rounded border border-[var(--adm-border)] bg-white px-1.5 py-0.5 text-[11px] leading-none text-[var(--adm-muted)]">⌘</kbd>
-              <kbd className="rounded border border-[var(--adm-border)] bg-white px-1.5 py-0.5 text-[11px] leading-none text-[var(--adm-muted)]">K</kbd>
-            </span>
-          </button>
           {/* User menu */}
           <div className="relative" ref={menuRef}>
             <button

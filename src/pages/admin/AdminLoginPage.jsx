@@ -35,7 +35,7 @@ export default function AdminLoginPage() {
 
   return (
     <div className="admin-theme flex min-h-screen items-center justify-center bg-[var(--adm-bg)] p-4">
-      <div className="flex w-full max-w-[960px] overflow-hidden rounded-[12px] border border-[var(--adm-border)] bg-white shadow-[var(--adm-shadow)]">
+      <div className="flex w-full max-w-[960px] overflow-hidden rounded-[16px] border border-[var(--adm-border)] bg-white shadow-[var(--adm-shadow)]">
         {/* Hero panel */}
         <div className="relative hidden w-1/2 flex-col justify-between overflow-hidden bg-[var(--adm-forest-500)] p-10 text-white lg:flex">
           <div className="pointer-events-none absolute -right-16 -top-16 size-72 rounded-full bg-[var(--adm-mint)] opacity-20" />
@@ -47,9 +47,9 @@ export default function AdminLoginPage() {
             <span className="text-[15px] font-medium">DMB Admin</span>
           </div>
           <div className="relative">
-            <h2 className="text-[28px] font-medium leading-tight">Kelola toko sparepart kamu</h2>
+            <h2 className="text-[28px] font-medium leading-tight">Kelola katalog sparepart kamu</h2>
             <p className="mt-3 text-[15px] leading-relaxed text-white/70">
-              Pantau penjualan, atur produk, dan proses pesanan — semua dari satu dashboard.
+              Atur produk & kategori, kelola tim — semua langsung tersinkron ke storefront.
             </p>
           </div>
           <p className="relative text-[13px] text-white/50">DMB Moto Shop · Panel Pengelola</p>

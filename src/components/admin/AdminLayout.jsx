@@ -9,11 +9,11 @@ import '../../styles/admin-theme.css'
 // storefront theme is never affected.
 export default function AdminLayout() {
   return (
-    <div className="admin-theme flex h-screen flex-col gap-3 bg-[var(--adm-bg)] p-3">
-      <Topbar />
-      <div className="flex min-h-0 flex-1 gap-3">
-        <Sidebar />
-        <main className="min-w-0 flex-1 overflow-y-auto rounded-[12px]">
+    <div className="admin-theme flex h-screen gap-3 bg-[var(--adm-bg)] p-3">
+      <Sidebar />
+      <div className="flex min-w-0 flex-1 flex-col gap-3">
+        <Topbar />
+        <main className="min-w-0 flex-1 overflow-y-auto rounded-[16px]">
           <Outlet />
         </main>
       </div>

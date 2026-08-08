@@ -12,16 +12,17 @@ import {
   DownloadSimple,
   X,
   Copy,
+  Package,
+  CheckCircle,
+  FileDashed,
 } from '@phosphor-icons/react'
 import { useAuth } from '../../context/AuthContext'
 import { useStore } from '../../store/StoreProvider'
 import { formatCurrency } from '../../utils/formatCurrency'
-import PageHeader from '../../components/admin/PageHeader'
 import { AdminButton, AdminCheckbox, AdminInput } from '../../components/admin/ui/FormControls'
 import Dropdown from '../../components/admin/ui/Dropdown'
-import StatCard from '../../components/admin/widgets/StatCard'
+import { StatTile, StatusPill } from '../../components/admin/ui/Bento'
 import ProductImportModal from '../../components/admin/ProductImportModal'
-import { BoxIcon } from '../../components/admin/icons'
 
 // Product status maps to the DB `published` boolean — nothing else exists.
 const TABS = [
@@ -93,44 +94,50 @@ export default function ProductsPage() {
     })
   }
 
+  const iconBtn =
+    'flex size-9 items-center justify-center rounded-lg border border-[var(--adm-border)] bg-white text-black transition-colors hover:bg-[var(--adm-bg)]'
+
   return (
-    <div className="mx-auto max-w-[1200px] p-6 lg:p-8">
-      <PageHeader title="Produk" subtitle="Lihat dan kelola semua produk di toko kamu.">
+    <div className="mx-auto flex max-w-[1240px] flex-col gap-4 p-4 lg:p-6">
+      {/* Header */}
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-[24px] font-semibold tracking-tight text-[var(--adm-ink)]">Produk</h1>
+          <p className="mt-1 text-[14px] text-[var(--adm-muted)]">Kelola semua sparepart di katalog kamu.</p>
+        </div>
         {isEditor && (
-          <>
+          <div className="flex items-center gap-2">
             <AdminButton variant="secondary" onClick={() => setShowImport(true)}>
               <DownloadSimple size={18} /> Import
             </AdminButton>
             <AdminButton onClick={() => navigate('/admin/products/new')}>
               <Plus size={18} weight="bold" /> Tambah Produk
             </AdminButton>
-          </>
+          </div>
         )}
-      </PageHeader>
-
-      {/* Product count — real data only */}
-      <div className="mb-4 max-w-[300px]">
-        <StatCard
-          icon={BoxIcon}
-          label="Total Sparepart"
-          value={products.length}
-          sub={`${publishedCount} dipublish`}
-        />
       </div>
 
-      {/* Table card */}
-      <div className="adm-card flex flex-col gap-6 p-6">
-        <p className="text-[20px] font-medium text-black">Semua Produk</p>
+      {/* Stat tiles */}
+      <div className="grid gap-4 sm:grid-cols-3">
+        <StatTile icon={Package} variant="dark" label="Total Sparepart" value={products.length.toLocaleString('id-ID')} />
+        <StatTile icon={CheckCircle} tone="green" label="Published" value={publishedCount.toLocaleString('id-ID')} />
+        <StatTile icon={FileDashed} tone="amber" label="Draft" value={(products.length - publishedCount).toLocaleString('id-ID')} />
+      </div>
 
+      {/* Table tile */}
+      <div className="adm-tile flex flex-col gap-5 p-5">
+        {/* Toolbar */}
         <div className="flex flex-wrap items-center justify-between gap-3">
-          {/* Status tabs */}
-          <div className="flex items-center gap-1 rounded-[100px] border border-[var(--adm-white-600)] bg-white py-1 pl-1 pr-3">
+          {/* Status tabs — segmented control */}
+          <div className="flex items-center gap-1 rounded-full bg-[var(--adm-bg)] p-1">
             {TABS.map((t) => (
               <button
                 key={t.key}
                 onClick={() => setTab(t.key)}
-                className={`flex h-[47px] items-center justify-center rounded-[100px] px-5 text-[16px] transition-colors ${
-                  tab === t.key ? 'bg-[var(--adm-bg)] text-[var(--adm-ink)]' : 'text-[var(--adm-muted)] hover:text-[var(--adm-ink)]'
+                className={`flex h-8 items-center justify-center rounded-full px-4 text-[13px] font-medium transition-colors ${
+                  tab === t.key
+                    ? 'bg-white text-[var(--adm-ink)] shadow-[var(--adm-shadow-sm)]'
+                    : 'text-[var(--adm-muted)] hover:text-[var(--adm-ink)]'
                 }`}
               >
                 {t.label}
@@ -138,12 +145,12 @@ export default function ProductsPage() {
             ))}
           </div>
 
-          {/* Search / Categories / Filter */}
-          <div className="flex items-center gap-3">
+          {/* Search / Categories */}
+          <div className="flex items-center gap-2">
             <Dropdown
               trigger={(toggle) => (
-                <button onClick={toggle} className="flex size-6 items-center justify-center text-black" aria-label="Cari">
-                  <MagnifyingGlass size={22} />
+                <button onClick={toggle} className={iconBtn} aria-label="Cari">
+                  <MagnifyingGlass size={18} />
                 </button>
               )}
               panel={() => (
@@ -157,9 +164,9 @@ export default function ProductsPage() {
               trigger={(toggle) => (
                 <button
                   onClick={toggle}
-                  className="flex h-[47px] items-center gap-2 rounded-[100px] border border-[var(--adm-border)] bg-white px-5 text-[18px] text-black"
+                  className="flex h-9 items-center gap-2 rounded-lg border border-[var(--adm-border)] bg-white px-3.5 text-[14px] font-medium text-black hover:bg-[var(--adm-bg)]"
                 >
-                  Categories <CaretDown size={16} className="text-[var(--adm-muted)]" />
+                  Kategori <CaretDown size={15} className="text-[var(--adm-muted)]" />
                 </button>
               )}
               align="right"
@@ -167,12 +174,12 @@ export default function ProductsPage() {
                 <div className="adm-card w-56 p-2">
                   <label className="flex items-center gap-2.5 rounded-xl px-3 py-2 hover:bg-[var(--adm-bg)]">
                     <AdminCheckbox checked={selectedCats.size === 0} onChange={() => setSelectedCats(new Set())} />
-                    <span className="text-[15px] text-black">All</span>
+                    <span className="text-[14px] text-black">Semua</span>
                   </label>
                   {categories.map((c) => (
                     <label key={c.id} className="flex items-center gap-2.5 rounded-xl px-3 py-2 hover:bg-[var(--adm-bg)]">
                       <AdminCheckbox checked={selectedCats.has(c.id)} onChange={() => toggleCat(c.id)} />
-                      <span className="text-[15px] text-black">{c.name}</span>
+                      <span className="text-[14px] text-black">{c.name}</span>
                     </label>
                   ))}
                 </div>
@@ -183,73 +190,59 @@ export default function ProductsPage() {
 
         {/* Table */}
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[900px] text-left">
+          <table className="w-full min-w-[860px] text-left">
             <thead>
-              <tr className="rounded-[12px] bg-[var(--adm-bg)] text-[16px] text-[var(--adm-muted)]">
-                <th className="w-12 rounded-l-[12px] py-4 pl-6">
+              <tr className="bg-[var(--adm-bg)] text-[13px] font-medium text-[var(--adm-muted)]">
+                <th className="w-12 rounded-l-[10px] py-3 pl-5">
                   <AdminCheckbox checked={allChecked} onChange={toggleAll} />
                 </th>
-                <th className="py-4 font-normal">Product Name</th>
-                <th className="py-4 font-normal">Category</th>
-                <th className="py-4 font-normal">Price</th>
-                <th className="py-4 font-normal">Status</th>
-                <th className="rounded-r-[12px] py-4 pr-6 font-normal">Action</th>
+                <th className="py-3 font-medium">Produk</th>
+                <th className="py-3 font-medium">Kategori</th>
+                <th className="py-3 font-medium">Harga</th>
+                <th className="py-3 font-medium">Status</th>
+                <th className="rounded-r-[10px] py-3 pr-5 font-medium">Aksi</th>
               </tr>
             </thead>
             <tbody>
               {filtered.map((p) => (
-                <tr key={p.id} className="rounded-[12px]">
-                  <td className="py-3.5 pl-6">
+                <tr key={p.id} className="border-b border-[var(--adm-border)] last:border-0">
+                  <td className="py-3 pl-5">
                     <AdminCheckbox checked={selected.has(p.id)} onChange={() => toggleOne(p.id)} />
                   </td>
-                  <td className="py-3.5 pr-4">
-                    <div className="flex items-center gap-2">
-                      <span className="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-[8px] border border-[var(--adm-border-strong)]">
-                        <img src={p.images?.[0]} alt={p.name} className="size-full object-cover" />
+                  <td className="py-3 pr-4">
+                    <div className="flex items-center gap-3">
+                      <span className="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-[var(--adm-bg)]">
+                        {p.images?.[0] ? (
+                          <img src={p.images[0]} alt={p.name} className="size-full object-contain p-1" />
+                        ) : (
+                          <Package size={18} className="text-[var(--adm-muted)]" />
+                        )}
                       </span>
-                      <p className="w-[160px] truncate text-[16px] text-black">{p.name}</p>
+                      <div className="min-w-0">
+                        <p className="w-[180px] truncate text-[14px] font-medium text-[var(--adm-ink)]">{p.name}</p>
+                        <p className="truncate text-[12px] text-[var(--adm-muted)]">{p.sku}</p>
+                      </div>
                     </div>
                   </td>
-                  <td className="py-3.5 pr-4 text-[16px] text-black">{catName(p.category)}</td>
-                  <td className="py-3.5 pr-4 text-[16px] text-black">{formatCurrency(p.price)}</td>
-                  <td className="py-3.5 pr-4">
-                    <span
-                      className="inline-flex items-center whitespace-nowrap rounded-[100px] border px-2.5 py-0.5 text-[14px]"
-                      style={
-                        p.published
-                          ? { color: 'var(--adm-instock-text)', background: 'var(--adm-instock-bg)', borderColor: 'var(--adm-instock-border)' }
-                          : { color: 'var(--adm-lowstock-text)', background: 'var(--adm-lowstock-bg)', borderColor: 'var(--adm-lowstock-border)' }
-                      }
-                    >
-                      {p.published ? 'Published' : 'Draft'}
-                    </span>
+                  <td className="py-3 pr-4 text-[14px] text-[var(--adm-text)]">{catName(p.category)}</td>
+                  <td className="py-3 pr-4 text-[14px] font-medium adm-nums text-[var(--adm-ink)]">{formatCurrency(p.price)}</td>
+                  <td className="py-3 pr-4">
+                    <StatusPill published={p.published} />
                   </td>
-                  <td className="py-3.5 pr-6">
+                  <td className="py-3 pr-5">
                     {isEditor ? (
                       <div className="flex items-center gap-1">
-                        <button
-                          onClick={() => navigate(`/admin/products/${p.id}`)}
-                          className="flex size-10 items-center justify-center rounded-full border border-[var(--adm-border)] bg-white text-black hover:bg-[var(--adm-bg)]"
-                          aria-label="Edit"
-                        >
-                          <PencilSimple size={20} />
+                        <button onClick={() => navigate(`/admin/products/${p.id}`)} className={iconBtn} aria-label="Edit">
+                          <PencilSimple size={18} />
                         </button>
-                        <button
-                          onClick={() => setConfirmDel(p)}
-                          className="flex size-10 items-center justify-center rounded-full border border-[var(--adm-border)] bg-white text-black hover:bg-[var(--adm-bg)]"
-                          aria-label="Hapus"
-                        >
-                          <Trash size={20} />
+                        <button onClick={() => setConfirmDel(p)} className={iconBtn} aria-label="Hapus">
+                          <Trash size={18} />
                         </button>
                         <Dropdown
                           align="right"
                           trigger={(toggle) => (
-                            <button
-                              onClick={toggle}
-                              className="flex size-10 items-center justify-center rounded-full border border-[var(--adm-border)] bg-white text-black hover:bg-[var(--adm-bg)]"
-                              aria-label="Lainnya"
-                            >
-                              <DotsThree size={20} weight="bold" />
+                            <button onClick={toggle} className={iconBtn} aria-label="Lainnya">
+                              <DotsThree size={18} weight="bold" />
                             </button>
                           )}
                           panel={(close) => (
@@ -285,7 +278,7 @@ export default function ProductsPage() {
               ))}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="py-10 text-center text-[var(--adm-muted)]">
+                  <td colSpan={6} className="py-10 text-center text-[14px] text-[var(--adm-muted)]">
                     Tidak ada produk yang cocok.
                   </td>
                 </tr>
@@ -305,7 +298,7 @@ export default function ProductsPage() {
         />
       )}
 
-      {/* Delete confirm — Figma-exact icon badge + copy */}
+      {/* Delete confirm */}
       {confirmDel && (
         <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/40 p-4" onClick={() => setConfirmDel(null)}>
           <div className="adm-card w-full max-w-sm p-0" onClick={(e) => e.stopPropagation()}>

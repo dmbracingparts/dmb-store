@@ -108,10 +108,10 @@ function ProductFormPageInner() {
   const catOptions = categories.map((c) => ({ value: c.id, label: c.name }))
 
   return (
-    <div className="mx-auto max-w-[1200px] px-6 pb-28 pt-6 lg:px-8 lg:pt-8">
+    <div className="mx-auto max-w-[1240px] px-4 pb-28 pt-4 lg:px-6 lg:pt-6">
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-medium text-[var(--adm-ink)]">
+      <div className="mb-4">
+        <h1 className="text-[24px] font-semibold tracking-tight text-[var(--adm-ink)]">
           {isNew ? 'Tambah Produk' : 'Edit Produk'}
         </h1>
         <p className="mt-1 text-[13px] text-[var(--adm-muted)]">
@@ -125,7 +125,7 @@ function ProductFormPageInner() {
         {/* ─── Left: Form ─────────────────────────────────────────────── */}
         <div className="flex flex-1 flex-col gap-4 min-w-0">
           {/* Images */}
-          <div className="adm-card p-5">
+          <div className="adm-tile p-5">
             <div className="mb-1 flex items-center justify-between">
               <FieldLabel>Gambar</FieldLabel>
               <span className="text-[12px] text-[var(--adm-muted)]">{images.length}/{MAX_IMAGES}</span>
@@ -168,7 +168,7 @@ function ProductFormPageInner() {
           </div>
 
           {/* Basic Info */}
-          <div className="adm-card flex flex-col gap-4 p-5">
+          <div className="adm-tile flex flex-col gap-4 p-5">
             <div>
               <FieldLabel>Nama Produk</FieldLabel>
               <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Masukkan nama produk di sini" />
@@ -189,7 +189,7 @@ function ProductFormPageInner() {
           </div>
 
           {/* Description */}
-          <div className="adm-card flex flex-col gap-3 p-5">
+          <div className="adm-tile flex flex-col gap-3 p-5">
             <FieldLabel>Deskripsi</FieldLabel>
             <textarea
               className="h-32 w-full rounded-xl border border-[var(--adm-border)] px-4 py-3 text-[14px] text-[var(--adm-ink)] outline-none placeholder:text-[var(--adm-muted)] focus:border-[var(--adm-forest-500)] resize-none"
@@ -200,7 +200,7 @@ function ProductFormPageInner() {
           </div>
 
           {/* Video (YouTube URL) */}
-          <div className="adm-card p-5">
+          <div className="adm-tile p-5">
             <FieldLabel>Video YouTube</FieldLabel>
             <p className="mb-3 text-[12px] text-[var(--adm-muted)]">
               Tempel link YouTube produk. Ditampilkan sebagai video tertanam di halaman produk.
@@ -209,7 +209,7 @@ function ProductFormPageInner() {
           </div>
 
           {/* Price */}
-          <div className="adm-card flex flex-col gap-4 p-5">
+          <div className="adm-tile flex flex-col gap-4 p-5">
             <p className="text-[15px] font-medium text-[var(--adm-ink)]">Harga</p>
 
             <div className="grid grid-cols-2 gap-3">
@@ -237,7 +237,7 @@ function ProductFormPageInner() {
         {/* ─── Right: Preview + Recommendations ───────────────────────── */}
         <div className="hidden w-[260px] shrink-0 flex-col gap-4 lg:flex">
           {/* Preview card */}
-          <div className="adm-card p-4">
+          <div className="adm-tile p-4">
             <p className="mb-1 text-[13px] font-medium text-[var(--adm-ink)]">Preview</p>
             <p className="mb-3 text-[11px] text-[var(--adm-muted)]">Tampilan produk kamu.</p>
 
@@ -283,8 +283,8 @@ function ProductFormPageInner() {
 
       {/* Floating action bar — spans the content area (right of the 279px
           sidebar on lg), buttons right-aligned. */}
-      <div className="fixed bottom-3 left-3 right-3 z-40 lg:left-[303px]">
-        <div className="flex items-center justify-end gap-2 rounded-[12px] border border-[var(--adm-border)] bg-white px-4 py-3 shadow-[0_10px_40px_rgba(0,0,0,0.10)]">
+      <div className="fixed bottom-3 left-3 right-3 z-40 lg:left-[272px]">
+        <div className="flex items-center justify-end gap-2 rounded-[16px] border border-[var(--adm-border)] bg-white px-4 py-3 shadow-[0_10px_40px_rgba(0,0,0,0.10)]">
           <button
             type="button"
             onClick={() => handleSave(true)}

@@ -1,18 +1,20 @@
 import { NavLink } from 'react-router-dom'
-import { SquaresFour, Package, UsersThree, CaretDown } from '@phosphor-icons/react'
+import { SquaresFour, Package, UsersThree, ArrowSquareOut } from '@phosphor-icons/react'
 import { useAuth } from '../../context/AuthContext'
+import dmbLogo from '../../assets/logo-dmb.png'
 
-// Exact rebuild of the Figma "Sidebar" component (node 37:346), trimmed to
-// the two real destinations this admin has: Dashboard and Produk.
+const STOREFRONT_URL = 'https://dmb-store.vercel.app'
+
 function GroupLabel({ children }) {
   return (
-    <div className="flex items-center gap-2 px-1">
-      <span className="font-normal text-[16px] text-[var(--adm-muted)]">{children}</span>
-      <CaretDown size={16} className="text-[var(--adm-muted)]" />
-    </div>
+    <p className="px-3 pb-1.5 pt-2 text-[11px] font-semibold uppercase tracking-[0.09em] text-[var(--adm-muted)]">
+      {children}
+    </p>
   )
 }
 
+// Sequence-style nav item: subtle light pill when active, with the icon in a
+// filled black chip; muted icon + text when idle.
 function Item({ to, label, Icon, end }) {
   return (
     <NavLink
@@ -20,16 +22,23 @@ function Item({ to, label, Icon, end }) {
       end={end}
       className={({ isActive }) =>
         [
-          'flex items-center gap-2 rounded-[100px] px-4 py-2.5 text-[18px] transition-colors',
+          'group flex items-center gap-3 rounded-xl px-2.5 py-2 text-[14px] font-medium transition-colors',
           isActive
-            ? 'bg-[var(--adm-forest-500)] text-white'
-            : 'text-black hover:bg-[var(--adm-bg)]',
+            ? 'bg-[var(--adm-bg)] text-[var(--adm-ink)]'
+            : 'text-[var(--adm-forest-200)] hover:bg-[var(--adm-bg)] hover:text-[var(--adm-ink)]',
         ].join(' ')
       }
     >
       {({ isActive }) => (
         <>
-          <Icon size={24} weight={isActive ? 'fill' : 'regular'} className="shrink-0" />
+          <span
+            className={[
+              'flex size-8 shrink-0 items-center justify-center rounded-lg transition-colors',
+              isActive ? 'bg-black text-white' : 'text-[var(--adm-forest-200)] group-hover:text-[var(--adm-ink)]',
+            ].join(' ')}
+          >
+            <Icon size={18} weight={isActive ? 'fill' : 'regular'} />
+          </span>
           <span className="flex-1 whitespace-nowrap">{label}</span>
         </>
       )}
@@ -45,16 +54,34 @@ const MENU = [
 export default function Sidebar() {
   const { isAdministrator } = useAuth()
   return (
-    <aside className="relative hidden w-[279px] shrink-0 flex-col overflow-hidden rounded-[12px] bg-white lg:flex">
-      <div className="flex flex-1 flex-col gap-4 overflow-y-auto p-6 pb-[200px]">
-        {/* Menu */}
-        <div className="flex flex-col gap-2">
-          <GroupLabel>Menu</GroupLabel>
-          {MENU.map((m) => (
-            <Item key={m.to} {...m} />
-          ))}
-          {isAdministrator && <Item to="/admin/staff" label="Staff" Icon={UsersThree} />}
-        </div>
+    <aside className="relative hidden w-[248px] shrink-0 flex-col overflow-hidden rounded-[16px] bg-white lg:flex">
+      {/* Brand */}
+      <div className="flex items-center px-5 py-[18px]">
+        <img src={dmbLogo} alt="DMB Moto Shop" className="h-8 w-auto" />
+      </div>
+
+      {/* Nav */}
+      <nav className="adm-scroll flex flex-1 flex-col gap-0.5 overflow-y-auto px-3">
+        <GroupLabel>Menu</GroupLabel>
+        {MENU.map((m) => (
+          <Item key={m.to} {...m} />
+        ))}
+        {isAdministrator && <Item to="/admin/staff" label="Staff" Icon={UsersThree} />}
+      </nav>
+
+      {/* Footer */}
+      <div className="p-3">
+        <a
+          href={STOREFRONT_URL}
+          target="_blank"
+          rel="noreferrer"
+          className="group flex items-center gap-3 rounded-xl px-2.5 py-2 text-[14px] font-medium text-[var(--adm-forest-200)] transition-colors hover:bg-[var(--adm-bg)] hover:text-[var(--adm-ink)]"
+        >
+          <span className="flex size-8 shrink-0 items-center justify-center rounded-lg text-[var(--adm-forest-200)] group-hover:text-[var(--adm-ink)]">
+            <ArrowSquareOut size={18} />
+          </span>
+          <span className="flex-1">Lihat Storefront</span>
+        </a>
       </div>
     </aside>
   )
