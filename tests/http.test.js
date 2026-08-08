@@ -1,25 +1,42 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { requireAdmin } from '../api/_lib/http.js'
+import { requireEditorSession } from '../api/_lib/http.js'
+import { signSession } from '../api/_lib/auth.js'
 
-test('requireAdmin fails when APP_TARGET is not admin', () => {
+process.env.SESSION_SECRET = 'test-secret-0123456789'
+
+test('requireEditorSession fails when APP_TARGET is not admin', async () => {
   delete process.env.APP_TARGET
-  const r = requireAdmin({ headers: {} })
+  const r = await requireEditorSession({ headers: {} })
   assert.equal(r.ok, false)
   assert.equal(r.status, 404)
 })
 
-test('requireAdmin fails on bad secret', () => {
+test('requireEditorSession fails with no session cookie', async () => {
   process.env.APP_TARGET = 'admin'
-  process.env.ADMIN_API_SECRET = 'right'
-  const r = requireAdmin({ headers: { 'x-admin-secret': 'wrong' } })
+  const r = await requireEditorSession({ headers: {} })
   assert.equal(r.ok, false)
   assert.equal(r.status, 401)
 })
 
-test('requireAdmin passes with correct target + secret', () => {
+test('requireEditorSession fails for a viewer session', async () => {
   process.env.APP_TARGET = 'admin'
-  process.env.ADMIN_API_SECRET = 'right'
-  const r = requireAdmin({ headers: { 'x-admin-secret': 'right' } })
+  const token = await signSession({ id: 'x', role: 'viewer' })
+  const r = await requireEditorSession({ headers: { cookie: `dmb_session=${token}` } })
+  assert.equal(r.ok, false)
+  assert.equal(r.status, 403)
+})
+
+test('requireEditorSession passes for a staff session', async () => {
+  process.env.APP_TARGET = 'admin'
+  const token = await signSession({ id: 'x', role: 'staff' })
+  const r = await requireEditorSession({ headers: { cookie: `dmb_session=${token}` } })
+  assert.equal(r.ok, true)
+})
+
+test('requireEditorSession passes for an owner session', async () => {
+  process.env.APP_TARGET = 'admin'
+  const token = await signSession({ id: 'x', role: 'owner' })
+  const r = await requireEditorSession({ headers: { cookie: `dmb_session=${token}` } })
   assert.equal(r.ok, true)
 })

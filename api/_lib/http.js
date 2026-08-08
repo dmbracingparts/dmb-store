@@ -1,3 +1,5 @@
+import { requireSession, requireEditor } from './auth.js'
+
 export function json(res, status, body) {
   res.statusCode = status
   res.setHeader('content-type', 'application/json')
@@ -5,13 +7,12 @@ export function json(res, status, body) {
 }
 
 // Admin write endpoints only exist on the admin deployment (APP_TARGET=admin)
-// and require the shared secret header. On the storefront deployment this
-// returns 404 so the endpoint appears not to exist.
-export function requireAdmin(req) {
+// and require a valid editor (owner|staff) session. On the storefront
+// deployment this returns 404 so the endpoint appears not to exist.
+export async function requireEditorSession(req) {
   if (process.env.APP_TARGET !== 'admin') return { ok: false, status: 404, error: 'Not found' }
-  const secret = req.headers['x-admin-secret']
-  if (!secret || secret !== process.env.ADMIN_API_SECRET) {
-    return { ok: false, status: 401, error: 'Unauthorized' }
-  }
-  return { ok: true }
+  const auth = await requireSession(req)
+  if (!auth.ok) return auth
+  if (!requireEditor(auth.session)) return { ok: false, status: 403, error: 'Tidak punya akses' }
+  return { ok: true, session: auth.session }
 }

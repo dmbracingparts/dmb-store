@@ -1,6 +1,7 @@
 import { getSql } from '../../_lib/db.js'
 import { listProducts, createProduct, validateProductInput } from '../../_lib/products.js'
-import { json, requireAdmin } from '../../_lib/http.js'
+import { json, requireEditorSession } from '../../_lib/http.js'
+import { checkOrigin } from '../../_lib/auth.js'
 
 async function readBody(req) {
   if (req.body) return typeof req.body === 'string' ? JSON.parse(req.body) : req.body
@@ -10,7 +11,7 @@ async function readBody(req) {
 }
 
 export default async function handler(req, res) {
-  const auth = requireAdmin(req)
+  const auth = await requireEditorSession(req)
   if (!auth.ok) return json(res, auth.status, { error: auth.error })
   try {
     if (req.method === 'GET') {
@@ -18,6 +19,7 @@ export default async function handler(req, res) {
       return json(res, 200, { products })
     }
     if (req.method === 'POST') {
+      if (!checkOrigin(req)) return json(res, 403, { error: 'Origin tidak valid' })
       const v = validateProductInput(await readBody(req))
       if (!v.ok) return json(res, 400, { error: v.error })
       const product = await createProduct(getSql(), v.value)
