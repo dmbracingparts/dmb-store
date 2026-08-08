@@ -1,8 +1,9 @@
 import { useState, useRef } from 'react'
-import { useNavigate, useParams, Link } from 'react-router-dom'
+import { useNavigate, useParams, Link, Navigate } from 'react-router-dom'
 import {
   X, CaretDown, ShoppingCart, Package, Plus,
 } from '@phosphor-icons/react'
+import { useAuth } from '../../context/AuthContext'
 import { useStore } from '../../store/StoreProvider'
 import { formatCurrency } from '../../utils/formatCurrency'
 
@@ -43,7 +44,7 @@ function Select({ value, onChange, options, placeholder }) {
   )
 }
 
-export default function ProductFormPage() {
+function ProductFormPageInner() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { products, categories, addProduct, updateProduct } = useStore()
@@ -303,4 +304,11 @@ export default function ProductFormPage() {
       </div>
     </div>
   )
+}
+
+// Viewers can't reach the editor — server also blocks writes with 403.
+export default function ProductFormPage() {
+  const { isEditor } = useAuth()
+  if (!isEditor) return <Navigate to="/admin/products" replace />
+  return <ProductFormPageInner />
 }

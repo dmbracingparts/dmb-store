@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router-dom'
-import { SquaresFour, Package, CaretDown } from '@phosphor-icons/react'
+import { SquaresFour, Package, UsersThree, CaretDown } from '@phosphor-icons/react'
+import { useAuth } from '../../context/AuthContext'
 
 // Exact rebuild of the Figma "Sidebar" component (node 37:346), trimmed to
 // the two real destinations this admin has: Dashboard and Produk.
@@ -42,6 +43,7 @@ const MENU = [
 ]
 
 export default function Sidebar() {
+  const { isOwner } = useAuth()
   return (
     <aside className="relative hidden w-[279px] shrink-0 flex-col overflow-hidden rounded-[12px] bg-white lg:flex">
       <div className="flex flex-1 flex-col gap-4 overflow-y-auto p-6 pb-[200px]">
@@ -51,6 +53,7 @@ export default function Sidebar() {
           {MENU.map((m) => (
             <Item key={m.to} {...m} />
           ))}
+          {isOwner && <Item to="/admin/staff" label="Staff" Icon={UsersThree} />}
         </div>
       </div>
     </aside>

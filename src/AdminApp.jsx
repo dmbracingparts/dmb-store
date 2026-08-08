@@ -9,6 +9,7 @@ import DashboardPage from './pages/admin/DashboardPage'
 import ProductsPage from './pages/admin/ProductsPage'
 import AdminLoginPage from './pages/admin/AdminLoginPage'
 import ProductFormPage from './pages/admin/ProductFormPage'
+import StaffPage from './pages/admin/StaffPage'
 
 // Admin dashboard app — built with VITE_APP_TARGET=admin and deployed as its
 // own Vercel project behind Deployment Protection. No storefront pages are
@@ -37,6 +38,7 @@ export default function AdminApp() {
                 <Route path="products" element={<ProductsPage />} />
                 <Route path="products/new" element={<ProductFormPage />} />
                 <Route path="products/:id" element={<ProductFormPage />} />
+                <Route path="staff" element={<StaffPage />} />
               </Route>
 
               {/* Everything else on the admin deployment funnels into /admin. */}

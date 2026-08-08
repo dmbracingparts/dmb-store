@@ -13,6 +13,7 @@ import {
   X,
   Copy,
 } from '@phosphor-icons/react'
+import { useAuth } from '../../context/AuthContext'
 import { useStore } from '../../store/StoreProvider'
 import { formatCurrency } from '../../utils/formatCurrency'
 import PageHeader from '../../components/admin/PageHeader'
@@ -36,6 +37,7 @@ function nextProductId(products) {
 
 export default function ProductsPage() {
   const { products, categories, updateProduct, deleteProduct, addProduct } = useStore()
+  const { isEditor } = useAuth()
   const navigate = useNavigate()
 
   const [tab, setTab] = useState('all')
@@ -94,12 +96,16 @@ export default function ProductsPage() {
   return (
     <div className="mx-auto max-w-[1200px] p-6 lg:p-8">
       <PageHeader title="Produk" subtitle="Lihat dan kelola semua produk di toko kamu.">
-        <AdminButton variant="secondary" onClick={() => setShowImport(true)}>
-          <DownloadSimple size={18} /> Import
-        </AdminButton>
-        <AdminButton onClick={() => navigate('/admin/products/new')}>
-          <Plus size={18} weight="bold" /> Tambah Produk
-        </AdminButton>
+        {isEditor && (
+          <>
+            <AdminButton variant="secondary" onClick={() => setShowImport(true)}>
+              <DownloadSimple size={18} /> Import
+            </AdminButton>
+            <AdminButton onClick={() => navigate('/admin/products/new')}>
+              <Plus size={18} weight="bold" /> Tambah Produk
+            </AdminButton>
+          </>
+        )}
       </PageHeader>
 
       {/* Product count — real data only */}
@@ -219,57 +225,61 @@ export default function ProductsPage() {
                     </span>
                   </td>
                   <td className="py-3.5 pr-6">
-                    <div className="flex items-center gap-1">
-                      <button
-                        onClick={() => navigate(`/admin/products/${p.id}`)}
-                        className="flex size-10 items-center justify-center rounded-full border border-[var(--adm-border)] bg-white text-black hover:bg-[var(--adm-bg)]"
-                        aria-label="Edit"
-                      >
-                        <PencilSimple size={20} />
-                      </button>
-                      <button
-                        onClick={() => setConfirmDel(p)}
-                        className="flex size-10 items-center justify-center rounded-full border border-[var(--adm-border)] bg-white text-black hover:bg-[var(--adm-bg)]"
-                        aria-label="Hapus"
-                      >
-                        <Trash size={20} />
-                      </button>
-                      <Dropdown
-                        align="right"
-                        trigger={(toggle) => (
-                          <button
-                            onClick={toggle}
-                            className="flex size-10 items-center justify-center rounded-full border border-[var(--adm-border)] bg-white text-black hover:bg-[var(--adm-bg)]"
-                            aria-label="Lainnya"
-                          >
-                            <DotsThree size={20} weight="bold" />
-                          </button>
-                        )}
-                        panel={(close) => (
-                          <div className="adm-card w-48 p-1">
+                    {isEditor ? (
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => navigate(`/admin/products/${p.id}`)}
+                          className="flex size-10 items-center justify-center rounded-full border border-[var(--adm-border)] bg-white text-black hover:bg-[var(--adm-bg)]"
+                          aria-label="Edit"
+                        >
+                          <PencilSimple size={20} />
+                        </button>
+                        <button
+                          onClick={() => setConfirmDel(p)}
+                          className="flex size-10 items-center justify-center rounded-full border border-[var(--adm-border)] bg-white text-black hover:bg-[var(--adm-bg)]"
+                          aria-label="Hapus"
+                        >
+                          <Trash size={20} />
+                        </button>
+                        <Dropdown
+                          align="right"
+                          trigger={(toggle) => (
                             <button
-                              onClick={() => {
-                                duplicateProduct(p)
-                                close()
-                              }}
-                              className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-[14px] text-black hover:bg-[var(--adm-bg)]"
+                              onClick={toggle}
+                              className="flex size-10 items-center justify-center rounded-full border border-[var(--adm-border)] bg-white text-black hover:bg-[var(--adm-bg)]"
+                              aria-label="Lainnya"
                             >
-                              <Copy size={16} /> Duplikat produk
+                              <DotsThree size={20} weight="bold" />
                             </button>
-                            <button
-                              onClick={() => {
-                                updateProduct(p.id, { published: !p.published })
-                                close()
-                              }}
-                              className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-[14px] text-black hover:bg-[var(--adm-bg)]"
-                            >
-                              {p.published ? <EyeSlash size={16} /> : <Eye size={16} />}
-                              {p.published ? 'Jadikan draft' : 'Publish'}
-                            </button>
-                          </div>
-                        )}
-                      />
-                    </div>
+                          )}
+                          panel={(close) => (
+                            <div className="adm-card w-48 p-1">
+                              <button
+                                onClick={() => {
+                                  duplicateProduct(p)
+                                  close()
+                                }}
+                                className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-[14px] text-black hover:bg-[var(--adm-bg)]"
+                              >
+                                <Copy size={16} /> Duplikat produk
+                              </button>
+                              <button
+                                onClick={() => {
+                                  updateProduct(p.id, { published: !p.published })
+                                  close()
+                                }}
+                                className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-[14px] text-black hover:bg-[var(--adm-bg)]"
+                              >
+                                {p.published ? <EyeSlash size={16} /> : <Eye size={16} />}
+                                {p.published ? 'Jadikan draft' : 'Publish'}
+                              </button>
+                            </div>
+                          )}
+                        />
+                      </div>
+                    ) : (
+                      <span className="text-[var(--adm-muted)]">—</span>
+                    )}
                   </td>
                 </tr>
               ))}
