@@ -99,12 +99,26 @@
 
 /* Motion ---------------------------------------------------------------- */
 
+/* IMPORTANT: none of the entrance animations below use fill-mode "both"/
+ * "forwards". A CSS animation whose *held* end state includes a `transform`
+ * (even a no-op one like `translateY(0)`) keeps that element establishing a
+ * new containing block for `position: fixed`/`absolute` descendants — even
+ * after the animation visually finishes — because the computed value is
+ * still a transform function, not the keyword `none`. Concretely, this broke
+ * every `fixed inset-0` modal and the product-form's `fixed` save bar in
+ * production: they rendered pinned to the (transformed) page-root div's box
+ * instead of the viewport. Since every "to" keyframe here matches the
+ * element's un-animated resting style, dropping fill-mode causes no visual
+ * difference — the element just reverts to its normal (transform: none)
+ * style the instant the animation ends, which is one and the same value.
+ */
+
 @keyframes adm-page-in {
   from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: translateY(0); }
 }
 .admin-theme .adm-page-in {
-  animation: adm-page-in 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: adm-page-in 0.28s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @keyframes adm-overlay-in {
@@ -120,7 +134,7 @@
   to { opacity: 1; transform: scale(1) translateY(0); }
 }
 .admin-theme .adm-panel-in {
-  animation: adm-panel-in 0.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: adm-panel-in 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @keyframes adm-toast-in {
@@ -128,8 +142,12 @@
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
 .admin-theme .adm-toast-in {
-  animation: adm-toast-in 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: adm-toast-in 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 }
+/* Exit animation keeps fill-mode "both": it must hold its hidden end state
+ * for the ~150ms between the animation finishing and the toast item's actual
+ * removal from the DOM. Safe here — a toast body never contains a fixed or
+ * absolutely positioned descendant. */
 .admin-theme .adm-toast-out {
   animation: adm-toast-in 0.15s ease-in reverse both;
 }
