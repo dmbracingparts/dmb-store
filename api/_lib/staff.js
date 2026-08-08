@@ -1,4 +1,4 @@
-const ROLES = ['owner', 'staff', 'viewer']
+const ROLES = ['administrator', 'inputer', 'viewer']
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/
 const LOCK_MS = 15 * 60 * 1000
 const LOCK_THRESHOLD = 5
@@ -25,9 +25,9 @@ export function validateStaffInput(data, { requirePassword = false } = {}) {
     return { ok: false, error: 'Email tidak valid.' }
   }
 
-  const role = data.role === undefined || data.role === null || data.role === '' ? 'staff' : data.role
+  const role = data.role === undefined || data.role === null || data.role === '' ? 'inputer' : data.role
   if (!ROLES.includes(role)) {
-    return { ok: false, error: "Field 'role' harus salah satu dari: owner, staff, viewer." }
+    return { ok: false, error: "Field 'role' harus salah satu dari: administrator, inputer, viewer." }
   }
 
   const job = data.job === undefined || data.job === null || data.job === '' ? null : String(data.job)
@@ -79,8 +79,8 @@ export async function setPassword(sql, id, passwordHash) {
   await sql`update staff set password_hash = ${passwordHash}, updated_at = now() where id = ${id}`
 }
 
-export async function countOwners(sql) {
-  const rows = await sql`select count(*)::int as count from staff where role = 'owner'`
+export async function countAdministrators(sql) {
+  const rows = await sql`select count(*)::int as count from staff where role = 'administrator'`
   return rows[0].count
 }
 
@@ -92,10 +92,10 @@ export async function deleteStaff(sql, id, actingId) {
   if (!target) {
     return { ok: false, error: 'Staff tidak ditemukan' }
   }
-  if (target.role === 'owner') {
-    const owners = await countOwners(sql)
-    if (owners <= 1) {
-      return { ok: false, error: 'Tidak bisa menghapus owner terakhir' }
+  if (target.role === 'administrator') {
+    const admins = await countAdministrators(sql)
+    if (admins <= 1) {
+      return { ok: false, error: 'Tidak bisa menghapus administrator terakhir' }
     }
   }
   await sql`delete from staff where id = ${id}`

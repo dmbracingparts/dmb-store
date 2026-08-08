@@ -1,6 +1,6 @@
 import { getSql } from '../../../_lib/db.js'
 import { setPassword } from '../../../_lib/staff.js'
-import { requireSession, requireOwner, checkOrigin, hashPassword } from '../../../_lib/auth.js'
+import { requireSession, requireAdministrator, checkOrigin, hashPassword } from '../../../_lib/auth.js'
 import { json } from '../../../_lib/http.js'
 
 async function readBody(req) {
@@ -16,7 +16,7 @@ export default async function handler(req, res) {
 
   const auth = await requireSession(req)
   if (!auth.ok) return json(res, auth.status, { error: auth.error })
-  if (!requireOwner(auth.session)) return json(res, 403, { error: 'Khusus owner' })
+  if (!requireAdministrator(auth.session)) return json(res, 403, { error: 'Khusus administrator' })
   if (!checkOrigin(req)) return json(res, 403, { error: 'Origin tidak valid' })
 
   const id = req.query?.id || new URL(req.url, 'http://x').pathname.split('/').slice(-2, -1)[0]

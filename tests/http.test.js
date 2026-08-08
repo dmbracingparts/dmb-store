@@ -27,16 +27,16 @@ test('requireEditorSession fails for a viewer session', async () => {
   assert.equal(r.status, 403)
 })
 
-test('requireEditorSession passes for a staff session', async () => {
+test('requireEditorSession passes for an inputer session', async () => {
   process.env.APP_TARGET = 'admin'
-  const token = await signSession({ id: 'x', role: 'staff' })
+  const token = await signSession({ id: 'x', role: 'inputer' })
   const r = await requireEditorSession({ headers: { cookie: `dmb_session=${token}` } })
   assert.equal(r.ok, true)
 })
 
-test('requireEditorSession passes for an owner session', async () => {
+test('requireEditorSession passes for an administrator session', async () => {
   process.env.APP_TARGET = 'admin'
-  const token = await signSession({ id: 'x', role: 'owner' })
+  const token = await signSession({ id: 'x', role: 'administrator' })
   const r = await requireEditorSession({ headers: { cookie: `dmb_session=${token}` } })
   assert.equal(r.ok, true)
 })

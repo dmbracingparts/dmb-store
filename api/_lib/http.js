@@ -7,7 +7,7 @@ export function json(res, status, body) {
 }
 
 // Admin write endpoints only exist on the admin deployment (APP_TARGET=admin)
-// and require a valid editor (owner|staff) session. On the storefront
+// and require a valid editor (administrator|inputer) session. On the storefront
 // deployment this returns 404 so the endpoint appears not to exist.
 export async function requireEditorSession(req) {
   if (process.env.APP_TARGET !== 'admin') return { ok: false, status: 404, error: 'Not found' }

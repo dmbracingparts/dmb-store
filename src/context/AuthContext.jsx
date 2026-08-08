@@ -98,13 +98,13 @@ export function AuthProvider({ children }) {
     return { ok: true }
   }
 
-  const isOwner = user?.role === 'owner'
-  const isEditor = IS_ADMIN ? (user?.role === 'owner' || user?.role === 'staff') : false
+  const isAdministrator = user?.role === 'administrator'
+  const isEditor = IS_ADMIN ? (user?.role === 'administrator' || user?.role === 'inputer') : false
   const isAdmin = IS_ADMIN ? !!user : (user?.role === 'admin' || user?.role === 'owner')
 
   return (
     <AuthContext.Provider
-      value={{ currentUser: user, isLoggedIn: !!user, isAdmin, isOwner, isEditor, loading, login, logout, loginWithGoogle, register }}
+      value={{ currentUser: user, isLoggedIn: !!user, isAdmin, isAdministrator, isEditor, loading, login, logout, loginWithGoogle, register }}
     >
       {children}
     </AuthContext.Provider>

@@ -8,7 +8,7 @@ import {
   verifyPassword,
   signSession,
   verifySession,
-  requireOwner,
+  requireAdministrator,
   requireEditor,
 } from '../api/_lib/auth.js'
 
@@ -19,14 +19,14 @@ test('hashPassword/verifyPassword roundtrip', async () => {
 })
 
 test('signSession/verifySession roundtrip', async () => {
-  const token = await signSession({ id: 42, role: 'owner' })
+  const token = await signSession({ id: 42, role: 'administrator' })
   const payload = await verifySession(token)
   assert.equal(payload.id, '42')
-  assert.equal(payload.role, 'owner')
+  assert.equal(payload.role, 'administrator')
 })
 
 test('verifySession returns null for tampered token', async () => {
-  const token = await signSession({ id: 1, role: 'staff' })
+  const token = await signSession({ id: 1, role: 'inputer' })
   const tampered = token.slice(0, -2) + (token.slice(-2) === 'aa' ? 'bb' : 'aa')
   assert.equal(await verifySession(tampered), null)
 })
@@ -47,15 +47,15 @@ test('verifySession returns null for missing token', async () => {
   assert.equal(await verifySession(undefined), null)
 })
 
-test('requireOwner true only for owner role', () => {
-  assert.equal(requireOwner({ id: '1', role: 'owner' }), true)
-  assert.equal(requireOwner({ id: '1', role: 'staff' }), false)
-  assert.equal(requireOwner(null), false)
+test('requireAdministrator true only for administrator role', () => {
+  assert.equal(requireAdministrator({ id: '1', role: 'administrator' }), true)
+  assert.equal(requireAdministrator({ id: '1', role: 'inputer' }), false)
+  assert.equal(requireAdministrator(null), false)
 })
 
-test('requireEditor true for owner and staff, false otherwise', () => {
-  assert.equal(requireEditor({ id: '1', role: 'owner' }), true)
-  assert.equal(requireEditor({ id: '1', role: 'staff' }), true)
+test('requireEditor true for administrator and inputer, false otherwise', () => {
+  assert.equal(requireEditor({ id: '1', role: 'administrator' }), true)
+  assert.equal(requireEditor({ id: '1', role: 'inputer' }), true)
   assert.equal(requireEditor({ id: '1', role: 'viewer' }), false)
   assert.equal(requireEditor(null), false)
 })

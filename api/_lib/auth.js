@@ -56,11 +56,11 @@ export async function requireSession(req) {
   if (!session) return { ok: false, status: 401, error: 'Belum login' }
   return { ok: true, session }
 }
-export function requireOwner(session) {
-  return !!session && session.role === 'owner'
+export function requireAdministrator(session) {
+  return !!session && session.role === 'administrator'
 }
 export function requireEditor(session) {
-  return !!session && (session.role === 'owner' || session.role === 'staff')
+  return !!session && (session.role === 'administrator' || session.role === 'inputer')
 }
 // CSRF defense-in-depth: same-origin check for mutations.
 export function checkOrigin(req) {

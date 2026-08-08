@@ -7,14 +7,14 @@ import { AdminButton, AdminInput, AdminSelect, Field } from '../../components/ad
 import { listStaff, createStaff, updateStaff, deleteStaff, resetPassword } from '../../lib/staffApi'
 
 const ROLES = [
-  { value: 'owner', label: 'Owner' },
-  { value: 'staff', label: 'Staff' },
+  { value: 'administrator', label: 'Administrator' },
+  { value: 'inputer', label: 'Inputer' },
   { value: 'viewer', label: 'Viewer' },
 ]
 
 const ROLE_BADGE = {
-  owner: { color: 'var(--adm-instock-text)', background: 'var(--adm-instock-bg)', borderColor: 'var(--adm-instock-border)' },
-  staff: { color: 'var(--adm-info)', background: 'color-mix(in srgb, var(--adm-info) 10%, white)', borderColor: 'color-mix(in srgb, var(--adm-info) 30%, white)' },
+  administrator: { color: 'var(--adm-instock-text)', background: 'var(--adm-instock-bg)', borderColor: 'var(--adm-instock-border)' },
+  inputer: { color: 'var(--adm-info)', background: 'color-mix(in srgb, var(--adm-info) 10%, white)', borderColor: 'color-mix(in srgb, var(--adm-info) 30%, white)' },
   viewer: { color: 'var(--adm-lowstock-text)', background: 'var(--adm-lowstock-bg)', borderColor: 'var(--adm-lowstock-border)' },
 }
 
@@ -48,7 +48,7 @@ function StaffFormModal({ isNew, initial, onClose, onSaved }) {
   const [name, setName] = useState(initial?.name || '')
   const [job, setJob] = useState(initial?.job || '')
   const [email, setEmail] = useState(initial?.email || '')
-  const [role, setRole] = useState(initial?.role || 'staff')
+  const [role, setRole] = useState(initial?.role || 'inputer')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
@@ -314,10 +314,10 @@ function StaffPageInner() {
   )
 }
 
-// Owner-only gate — everyone else bounces to the dashboard.
+// Administrator-only gate — everyone else bounces to the dashboard.
 export default function StaffPage() {
-  const { isOwner, loading } = useAuth()
+  const { isAdministrator, loading } = useAuth()
   if (loading) return null
-  if (!isOwner) return <Navigate to="/admin" replace />
+  if (!isAdministrator) return <Navigate to="/admin" replace />
   return <StaffPageInner />
 }

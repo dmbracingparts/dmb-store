@@ -3,7 +3,7 @@ create table if not exists staff (
   name text not null,
   job text,
   email text unique not null,
-  role text not null default 'staff' check (role in ('owner', 'staff', 'viewer')),
+  role text not null default 'inputer' check (role in ('administrator', 'inputer', 'viewer')),
   password_hash text not null,
   failed_attempts int not null default 0,
   locked_until timestamptz,

@@ -19,7 +19,7 @@ Catalog-only storefront + product CMS admin. **One repo → two Vercel projects*
 ```
 
 - The admin bundle is **structurally excluded** from the storefront build (the `@app` alias resolves to exactly one app). Verified: zero admin code/strings in the storefront bundle.
-- Admin auth is **server-side**: per-staff accounts in the `staff` table (bcrypt-hashed passwords), login issues an HttpOnly + Secure + SameSite=Strict session cookie (JWT signed with `SESSION_SECRET`). Write endpoints (`/api/admin/*`) require a valid session with an editor role (owner/staff); user-management endpoints require owner. Passwords never reach the browser. Gated additionally by `APP_TARGET=admin` (404 on the storefront deployment).
+- Admin auth is **server-side**: per-staff accounts in the `staff` table (bcrypt-hashed passwords), login issues an HttpOnly + Secure + SameSite=Strict session cookie (JWT signed with `SESSION_SECRET`). Write endpoints (`/api/admin/*`) require a valid session with an editor role (administrator/inputer); user-management endpoints require administrator. Passwords never reach the browser. Gated additionally by `APP_TARGET=admin` (404 on the storefront deployment).
 
 ## Environment variables
 
@@ -36,12 +36,12 @@ Build Command: `npm run build` (default).
 | `DATABASE_URL` | Neon connection string — **read-write role** | Server-only. |
 | `APP_TARGET` | `admin` | Runtime flag; enables the write endpoints. Required. |
 | `SESSION_SECRET` | a long random string | Signs the session JWT. Server-only. Rotating it logs everyone out. |
-| `OWNER_EMAIL` | first owner's login email | Used **once** by `db/seed-staff.mjs` to create the first owner. |
-| `OWNER_PASSWORD` | first owner's login password | Used **once** by the seed. Change/reset it from the dashboard later. |
+| `OWNER_EMAIL` | first administrator's login email | Used **once** by `db/seed-staff.mjs` to create the first administrator. |
+| `OWNER_PASSWORD` | first administrator's login password | Used **once** by the seed. Change/reset it from the dashboard later. |
 
 Build Command: `npm run build:admin`.
 
-**After first deploy, seed the first owner once:** `node --env-file=<env-with-DATABASE_URL+OWNER_*> db/seed-staff.mjs` (or run it locally against the production `DATABASE_URL`). This creates the migration + one owner account; then log in and add the rest via **Kelola Staff**.
+**After first deploy, seed the first owner once:** `node --env-file=<env-with-DATABASE_URL+OWNER_*> db/seed-staff.mjs` (or run it locally against the production `DATABASE_URL`). This runs the migrations + creates one administrator account; then log in and add the rest via **Kelola Staff**. Roles: **administrator** (full access incl. staff management), **inputer** (can edit products), **viewer** (read-only).
 
 > No admin credentials are `VITE_`-prefixed anymore — passwords are bcrypt-hashed in the DB and never compiled into the client bundle. (The old `VITE_ADMIN_EMAIL/PASSWORD/SECRET` and `ADMIN_API_SECRET` are removed.)
 

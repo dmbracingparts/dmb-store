@@ -5,12 +5,14 @@ import { hashPassword } from '../api/_lib/auth.js'
 const sql = neon(process.env.DATABASE_URL)
 
 async function run() {
-  // migration — the neon() HTTP driver runs one statement per call, so split
-  // the DDL file into individual statements.
-  const ddl = readFileSync(new URL('./migrations/002_staff.sql', import.meta.url), 'utf8')
-  const statements = ddl.split(';').map((s) => s.trim()).filter(Boolean)
-  for (const stmt of statements) {
-    await sql.query(stmt)
+  // migrations — the neon() HTTP driver runs one statement per call, so split
+  // each DDL file into individual statements and run them in order.
+  for (const file of ['002_staff.sql', '003_rename_roles.sql']) {
+    const ddl = readFileSync(new URL(`./migrations/${file}`, import.meta.url), 'utf8')
+    const statements = ddl.split(';').map((s) => s.trim()).filter(Boolean)
+    for (const stmt of statements) {
+      await sql.query(stmt)
+    }
   }
 
   // Check for required env vars
@@ -26,10 +28,10 @@ async function run() {
     return
   }
 
-  // Hash password and insert owner
+  // Hash password and insert the first administrator
   const hash = await hashPassword(process.env.OWNER_PASSWORD)
-  await sql`insert into staff (name, job, email, role, password_hash) values ('Owner', 'Pemilik', ${process.env.OWNER_EMAIL.toLowerCase()}, 'owner', ${hash})`
-  console.log('owner seeded:', process.env.OWNER_EMAIL)
+  await sql`insert into staff (name, job, email, role, password_hash) values ('Administrator', 'Pemilik', ${process.env.OWNER_EMAIL.toLowerCase()}, 'administrator', ${hash})`
+  console.log('administrator seeded:', process.env.OWNER_EMAIL)
 }
 
 run().catch((e) => { console.error(e); process.exit(1) })
