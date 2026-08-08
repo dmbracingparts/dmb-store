@@ -31,6 +31,7 @@ export default async function handler(req, res) {
     }
     json(res, 405, { error: 'Method not allowed' })
   } catch (e) {
-    json(res, 500, { error: String(e.message || e) })
+    console.error('/api/admin/products/[id]', e)
+    json(res, 500, { error: 'Terjadi kesalahan pada server' })
   }
 }

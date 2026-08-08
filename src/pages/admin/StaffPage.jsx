@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { Plus, PencilSimple, Trash, Key, X } from '@phosphor-icons/react'
 import { useAuth } from '../../context/AuthContext'
@@ -107,6 +107,11 @@ function ResetPasswordModal({ staff, onClose, onSaved }) {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
   const [saving, setSaving] = useState(false)
+  const timerRef = useRef(null)
+
+  // Clear the success-delay timer if the modal unmounts first (e.g. user hits
+  // Batal within 900ms) so onSaved doesn't fire a false "reset berhasil" toast.
+  useEffect(() => () => clearTimeout(timerRef.current), [])
 
   const submit = async (e) => {
     e.preventDefault()
@@ -115,7 +120,7 @@ function ResetPasswordModal({ staff, onClose, onSaved }) {
     try {
       await resetPassword(staff.id, password)
       setSuccess(true)
-      setTimeout(onSaved, 900)
+      timerRef.current = setTimeout(onSaved, 900)
     } catch (err) {
       setError(err.message)
     } finally {

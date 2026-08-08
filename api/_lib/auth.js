@@ -26,7 +26,7 @@ export async function signSession(user) {
 export async function verifySession(token) {
   if (!token) return null
   try {
-    const { payload } = await jwtVerify(token, secret())
+    const { payload } = await jwtVerify(token, secret(), { algorithms: ['HS256'] })
     return { id: payload.sub, role: payload.role }
   } catch {
     return null

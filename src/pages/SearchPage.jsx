@@ -56,7 +56,7 @@ export default function SearchPage() {
     const q = query.trim().toLowerCase()
     const filtered = products.filter((p) => {
       const matchesQuery =
-        !q || p.name.toLowerCase().includes(q) || p.brand.toLowerCase().includes(q)
+        !q || p.name.toLowerCase().includes(q) || (p.brand || '').toLowerCase().includes(q)
       const matchesCategory = !activeCategory || p.category === activeCategory
       return matchesQuery && matchesCategory
     })

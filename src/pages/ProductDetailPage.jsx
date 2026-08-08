@@ -12,10 +12,13 @@ import { useProduct, useCategories } from '../store/hooks'
 import { CATALOG_ONLY, STORE_WHATSAPP } from '../config/features'
 import { WhatsappLogo } from '@phosphor-icons/react'
 
+// Accept the three forms an admin might paste: watch?v=ID, youtu.be/ID, and
+// an already-embed URL. Extract the 11-char video id and always return a
+// proper /embed/ URL so the iframe actually plays (a bare youtu.be link
+// renders a blocked page inside an iframe).
 function toEmbedUrl(url) {
-  const match = url.match(/[?&]v=([^&]+)/)
-  const id = match ? match[1] : null
-  return id ? `https://www.youtube.com/embed/${id}` : url
+  const match = String(url).match(/(?:youtu\.be\/|[?&]v=|\/embed\/)([A-Za-z0-9_-]{11})/)
+  return match ? `https://www.youtube.com/embed/${match[1]}` : url
 }
 
 export default function ProductDetailPage() {

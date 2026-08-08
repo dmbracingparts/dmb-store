@@ -7,6 +7,7 @@ export default async function handler(req, res) {
     const categories = await listCategories(getSql())
     json(res, 200, { categories })
   } catch (e) {
-    json(res, 500, { error: String(e.message || e) })
+    console.error('GET /api/categories', e)
+    json(res, 500, { error: 'Terjadi kesalahan pada server' })
   }
 }

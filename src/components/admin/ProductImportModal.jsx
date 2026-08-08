@@ -47,6 +47,7 @@ export default function ProductImportModal({ categories, nextId, onImport, onClo
   const [file, setFile] = useState(null)
   const [dragOver, setDragOver] = useState(false)
   const [result, setResult] = useState(null)
+  const [uploading, setUploading] = useState(false)
   const inputRef = useRef(null)
 
   const handleFile = (f) => {
@@ -55,17 +56,30 @@ export default function ProductImportModal({ categories, nextId, onImport, onClo
   }
 
   const upload = async () => {
-    if (!file) return
-    const text = await file.text()
-    const { products, skipped } = parseCsv(text, categories)
-    let id = nextId
-    const withIds = products.map((p) => {
-      const withId = { ...p, id }
-      id = 'p' + (Number(id.slice(1)) + 1)
-      return withId
-    })
-    withIds.forEach((p) => onImport(p))
-    setResult({ count: withIds.length, skipped })
+    if (!file || uploading) return
+    setUploading(true)
+    setResult(null)
+    try {
+      const text = await file.text()
+      const { products, skipped } = parseCsv(text, categories)
+      // Await each create so a server rejection is caught and reflected in the
+      // count instead of being an unhandled promise + a false "success".
+      let id = nextId
+      let ok = 0
+      let failed = 0
+      for (const p of products) {
+        try {
+          await onImport({ ...p, id })
+          ok++
+        } catch {
+          failed++
+        }
+        id = 'p' + (Number(id.slice(1)) + 1)
+      }
+      setResult({ count: ok, skipped: skipped + failed })
+    } finally {
+      setUploading(false)
+    }
   }
 
   return (
@@ -121,8 +135,8 @@ export default function ProductImportModal({ categories, nextId, onImport, onClo
             </div>
           )}
 
-          <AdminButton onClick={upload} disabled={!file} className="w-full">
-            Upload
+          <AdminButton onClick={upload} disabled={!file || uploading} className="w-full">
+            {uploading ? 'Mengimpor…' : 'Upload'}
           </AdminButton>
         </div>
       </div>

@@ -65,7 +65,12 @@ function ProductFormPageInner() {
     e.target.value = ''
   }
 
-  const removeImg = (idx) => setImages((prev) => prev.filter((_, i) => i !== idx))
+  const removeImg = (idx) =>
+    setImages((prev) => {
+      const url = prev[idx]
+      if (typeof url === 'string' && url.startsWith('blob:')) URL.revokeObjectURL(url)
+      return prev.filter((_, i) => i !== idx)
+    })
 
   const handleSave = async (asDraft = false) => {
     if (saving) return
@@ -303,8 +308,13 @@ function ProductFormPageInner() {
 }
 
 // Viewers can't reach the editor — server also blocks writes with 403.
+// `key={id}` forces a fresh mount (and thus fresh useState initializers) when
+// navigating between two product-edit routes — e.g. ⌘K → another product —
+// otherwise the form keeps the previous product's field values and Save would
+// overwrite the wrong product.
 export default function ProductFormPage() {
   const { isEditor } = useAuth()
+  const { id } = useParams()
   if (!isEditor) return <Navigate to="/admin/products" replace />
-  return <ProductFormPageInner />
+  return <ProductFormPageInner key={id || 'new'} />
 }

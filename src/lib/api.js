@@ -33,7 +33,13 @@ export async function fetchProducts(params = {}) {
 }
 
 export async function fetchProduct(id) {
-  const body = await getJson(`/api/products/${id}`)
+  const res = await fetch(`/api/products/${id}`)
+  // A missing/unpublished product is a normal outcome, not an error — return
+  // null so the detail page can show its "not found" empty state instead of
+  // the generic error state.
+  if (res.status === 404) return null
+  const body = await res.json().catch(() => ({}))
+  if (!res.ok) throw new Error(body.error || `Request gagal (${res.status})`)
   productCache.set(id, body.product)
   return body.product
 }

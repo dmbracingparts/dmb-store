@@ -85,7 +85,7 @@ A dev-only Vite bridge (`dev/api-bridge.js`) serves `/api/*` locally against Neo
 ## Pre-launch checklist
 
 - [ ] Change `ADMIN_LOGIN_SLUG` in `src/config/features.js` (default `masuk-dmb`).
-- [ ] Set `STORE_WHATSAPP` in `src/config/features.js` (currently a placeholder).
-- [ ] Set real `VITE_ADMIN_EMAIL` / `VITE_ADMIN_PASSWORD` on the admin project.
+- [ ] Set `STORE_WHATSAPP` in `src/config/features.js` — **still the placeholder `6281234567890`**; the product-page "Hubungi" button links to `wa.me/<this>`, so leads go nowhere until it's the shop's real number.
+- [ ] Seed the first administrator via `db/seed-staff.mjs` (`OWNER_EMAIL`/`OWNER_PASSWORD`), then change that password from **Kelola User**. (Admin auth is DB-based — there are no `VITE_ADMIN_*` env vars.)
 - [ ] Use a read-only Neon role for the storefront `DATABASE_URL`.
 - [ ] (If exposed) rotate the Neon role password.

@@ -24,14 +24,14 @@ export default async function handler(req, res) {
       const v = validateStaffInput(await readBody(req), { requirePassword: false })
       if (!v.ok) return json(res, 400, { error: v.error })
       try {
-        const user = await updateStaff(getSql(), id, {
+        const r = await updateStaff(getSql(), id, {
           name: v.value.name,
           job: v.value.job,
           email: v.value.email,
           role: v.value.role,
         })
-        if (!user) return json(res, 404, { error: 'Staff tidak ditemukan' })
-        return json(res, 200, { user })
+        if (!r.ok) return json(res, r.status || 400, { error: r.error })
+        return json(res, 200, { user: r.user })
       } catch (e) {
         if (e && e.code === '23505') return json(res, 400, { error: 'Email sudah dipakai' })
         throw e

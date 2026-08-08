@@ -13,6 +13,7 @@ export default async function handler(req, res) {
     })
     json(res, 200, { products })
   } catch (e) {
-    json(res, 500, { error: String(e.message || e) })
+    console.error('GET /api/products', e)
+    json(res, 500, { error: 'Terjadi kesalahan pada server' })
   }
 }

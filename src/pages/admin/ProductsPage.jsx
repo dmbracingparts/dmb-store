@@ -229,8 +229,11 @@ export default function ProductsPage() {
           </div>
         </div>
 
-        {/* Table */}
-        <div className="overflow-x-auto">
+        {/* Table — on desktop the table fits, so allow overflow to be visible
+            there; otherwise `overflow-x:auto` forces overflow-y:auto too and
+            clips the row "..." action menu on the last rows. Small screens keep
+            horizontal scroll. */}
+        <div className="overflow-x-auto lg:overflow-visible">
           <table className="w-full min-w-[860px] text-left">
             <thead>
               <tr className="bg-[var(--adm-bg)] text-[13px] font-medium text-[var(--adm-muted)]">

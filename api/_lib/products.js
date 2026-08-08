@@ -23,6 +23,7 @@ export function shapeProduct(row) {
     featuredOrder: row.featured_order,
     images: toArray(row.images),
     compatibleWith: toArray(row.compat),
+    createdAt: row.created_at,
   }
 }
 
@@ -33,8 +34,10 @@ export function validateProductInput(data) {
       return { ok: false, error: `Field '${key}' wajib diisi.` }
     }
   }
-  if (typeof data.price !== 'number' || data.price < 0) {
-    return { ok: false, error: "Field 'price' harus angka >= 0." }
+  // `price` is an int4 column — reject fractional / out-of-range values here so
+  // they fail validation cleanly instead of throwing a Postgres error at insert.
+  if (typeof data.price !== 'number' || !Number.isInteger(data.price) || data.price < 0 || data.price > 2147483647) {
+    return { ok: false, error: "Field 'price' harus bilangan bulat 0 sampai 2147483647." }
   }
   const value = {
     id: data.id,
@@ -71,14 +74,19 @@ export async function listProducts(sql, { publishedOnly = false, category, q, fe
   return rows.map(shapeProduct)
 }
 
-export async function getProduct(sql, id) {
+// `publishedOnly` MUST be set true on the public storefront path so an
+// unauthenticated visitor can't fetch a draft product by guessing its id
+// (ids default to the lowercased sku). Admin create/update keep the default
+// (false) so they still get the freshly-saved draft back.
+export async function getProduct(sql, id, { publishedOnly = false } = {}) {
   const rows = await sql`
     select p.*,
       coalesce((select json_agg(i.url order by i.position)
                 from product_images i where i.product_id = p.id), '[]'::json) as images,
       coalesce((select json_agg(c.model)
                 from product_compatibility c where c.product_id = p.id), '[]'::json) as compat
-    from products p where p.id = ${id}`
+    from products p
+    where p.id = ${id} and (${!publishedOnly} or p.published = true)`
   if (rows.length === 0) return null
   return shapeProduct(rows[0])
 }

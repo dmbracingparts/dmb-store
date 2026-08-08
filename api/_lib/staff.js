@@ -68,15 +68,27 @@ export async function createStaff(sql, { name, job, email, role, passwordHash })
 }
 
 export async function updateStaff(sql, id, { name, job, email, role }) {
+  const target = await getById(sql, id)
+  if (!target) return { ok: false, status: 404, error: 'Staff tidak ditemukan' }
+  // Never let the last administrator be demoted: that would leave zero
+  // administrators and permanently lock user-management (mirrors deleteStaff's
+  // last-owner guard, which the update path previously bypassed).
+  if (target.role === 'administrator' && role !== 'administrator') {
+    const admins = await countAdministrators(sql)
+    if (admins <= 1) {
+      return { ok: false, status: 400, error: 'Tidak bisa menurunkan role administrator terakhir' }
+    }
+  }
   const rows = await sql`update staff set
     name = ${name}, job = ${job ?? null}, email = ${email}, role = ${role}, updated_at = now()
     where id = ${id} returning *`
-  if (rows.length === 0) return null
-  return shapeStaff(rows[0])
+  if (rows.length === 0) return { ok: false, status: 404, error: 'Staff tidak ditemukan' }
+  return { ok: true, user: shapeStaff(rows[0]) }
 }
 
 export async function setPassword(sql, id, passwordHash) {
-  await sql`update staff set password_hash = ${passwordHash}, updated_at = now() where id = ${id}`
+  const rows = await sql`update staff set password_hash = ${passwordHash}, updated_at = now() where id = ${id} returning id`
+  return rows.length > 0
 }
 
 export async function countAdministrators(sql) {

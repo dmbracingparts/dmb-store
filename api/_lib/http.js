@@ -6,12 +6,22 @@ export function json(res, status, body) {
   res.end(JSON.stringify(body))
 }
 
-// Admin write endpoints only exist on the admin deployment (APP_TARGET=admin)
-// and require a valid editor (administrator|inputer) session. On the storefront
-// deployment this returns 404 so the endpoint appears not to exist.
-export async function requireEditorSession(req) {
+// All admin endpoints only exist on the admin deployment (APP_TARGET=admin);
+// on the storefront deployment they return 404 so they appear not to exist.
+
+// Read gate: any authenticated staff session, regardless of role. Lets a
+// `viewer` load the catalog read-only (the UI already hides every write
+// control from non-editors via isEditor).
+export async function requireAdminSession(req) {
   if (process.env.APP_TARGET !== 'admin') return { ok: false, status: 404, error: 'Not found' }
   const auth = await requireSession(req)
+  if (!auth.ok) return auth
+  return { ok: true, session: auth.session }
+}
+
+// Write gate: requires a valid editor (administrator|inputer) session.
+export async function requireEditorSession(req) {
+  const auth = await requireAdminSession(req)
   if (!auth.ok) return auth
   if (!requireEditor(auth.session)) return { ok: false, status: 403, error: 'Tidak punya akses' }
   return { ok: true, session: auth.session }

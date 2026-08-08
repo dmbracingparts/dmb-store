@@ -27,9 +27,11 @@ export default async function handler(req, res) {
       return json(res, 400, { error: 'Password minimal 8 karakter' })
     }
     const hash = await hashPassword(newPassword)
-    await setPassword(getSql(), id, hash)
+    const ok = await setPassword(getSql(), id, hash)
+    if (!ok) return json(res, 404, { error: 'User tidak ditemukan' })
     return json(res, 200, { ok: true })
   } catch (e) {
+    console.error('reset-password', e)
     return json(res, 500, { error: 'Terjadi kesalahan pada server' })
   }
 }
