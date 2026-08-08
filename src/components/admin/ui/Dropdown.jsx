@@ -25,7 +25,9 @@ export default function Dropdown({ trigger, panel, align = 'left', className = '
     <div ref={ref} className={`relative ${className}`}>
       {trigger(() => setOpen((v) => !v), open)}
       {open && (
-        <div className={`absolute z-20 mt-2 ${align === 'right' ? 'right-0' : 'left-0'}`}>
+        <div
+          className={`adm-panel-in absolute z-20 mt-2 ${align === 'right' ? 'right-0 origin-top-right' : 'left-0 origin-top-left'}`}
+        >
           {panel(() => setOpen(false))}
         </div>
       )}

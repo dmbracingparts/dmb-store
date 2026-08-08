@@ -69,8 +69,8 @@ export default function ProductImportModal({ categories, nextId, onImport, onClo
   }
 
   return (
-    <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
-      <div className="adm-card w-full max-w-md p-0" onClick={(e) => e.stopPropagation()}>
+    <div className="adm-overlay-in fixed inset-0 z-30 flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
+      <div className="adm-card adm-panel-in w-full max-w-md p-0" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between px-6 py-5">
           <h2 className="text-[18px] font-medium text-black">Import Produk</h2>
           <button onClick={onClose} className="flex size-8 items-center justify-center rounded-full hover:bg-[var(--adm-bg)]" aria-label="Tutup">

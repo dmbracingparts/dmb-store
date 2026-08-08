@@ -21,7 +21,8 @@ import { useStore } from '../../store/StoreProvider'
 import { formatCurrency } from '../../utils/formatCurrency'
 import { AdminButton, AdminCheckbox, AdminInput } from '../../components/admin/ui/FormControls'
 import Dropdown from '../../components/admin/ui/Dropdown'
-import { StatTile, StatusPill } from '../../components/admin/ui/Bento'
+import { StatTile, StatusPill, RowSkeleton, StatTileSkeleton } from '../../components/admin/ui/Bento'
+import { useToast } from '../../components/admin/ui/Toast'
 import ProductImportModal from '../../components/admin/ProductImportModal'
 
 // Product status maps to the DB `published` boolean — nothing else exists.
@@ -37,15 +38,17 @@ function nextProductId(products) {
 }
 
 export default function ProductsPage() {
-  const { products, categories, updateProduct, deleteProduct, addProduct } = useStore()
+  const { products, categories, catalogLoading, updateProduct, deleteProduct, addProduct } = useStore()
   const { isEditor } = useAuth()
   const navigate = useNavigate()
+  const toast = useToast()
 
   const [tab, setTab] = useState('all')
   const [q, setQ] = useState('')
   const [selectedCats, setSelectedCats] = useState(new Set())
   const [selected, setSelected] = useState(new Set())
   const [confirmDel, setConfirmDel] = useState(null)
+  const [deleting, setDeleting] = useState(false)
   const [showImport, setShowImport] = useState(false)
 
   const catName = (id) => categories.find((c) => c.id === id)?.name || id
@@ -83,22 +86,50 @@ export default function ProductsPage() {
       return next
     })
 
-  const duplicateProduct = (p) => {
-    addProduct({
-      ...p,
-      id: nextProductId(products),
-      name: p.name + ' (Salinan)',
-      sku: p.sku + '-COPY',
-      published: false,
-      createdAt: new Date().toISOString().slice(0, 10),
-    })
+  const duplicateProduct = async (p) => {
+    try {
+      await addProduct({
+        ...p,
+        id: nextProductId(products),
+        name: p.name + ' (Salinan)',
+        sku: p.sku + '-COPY',
+        published: false,
+        createdAt: new Date().toISOString().slice(0, 10),
+      })
+      toast.success('Produk diduplikat', { description: `${p.name} (Salinan) ditambahkan sebagai draft.` })
+    } catch (e) {
+      toast.error('Gagal menduplikat produk', { description: e.message })
+    }
+  }
+
+  const togglePublish = async (p) => {
+    try {
+      await updateProduct(p.id, { published: !p.published })
+      toast.success(p.published ? 'Produk dijadikan draft' : 'Produk dipublish')
+    } catch (e) {
+      toast.error('Gagal mengubah status', { description: e.message })
+    }
+  }
+
+  const doDelete = async () => {
+    const target = confirmDel
+    setDeleting(true)
+    try {
+      await deleteProduct(target.id)
+      toast.success('Produk dihapus', { description: target.name })
+      setConfirmDel(null)
+    } catch (e) {
+      toast.error('Gagal menghapus produk', { description: e.message })
+    } finally {
+      setDeleting(false)
+    }
   }
 
   const iconBtn =
     'flex size-9 items-center justify-center rounded-lg border border-[var(--adm-border)] bg-white text-black transition-colors hover:bg-[var(--adm-bg)]'
 
   return (
-    <div className="mx-auto flex max-w-[1240px] flex-col gap-4 p-4 lg:p-6">
+    <div className="adm-page-in mx-auto flex max-w-[1240px] flex-col gap-4 p-4 lg:p-6">
       {/* Header */}
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
@@ -119,9 +150,19 @@ export default function ProductsPage() {
 
       {/* Stat tiles */}
       <div className="grid gap-4 sm:grid-cols-3">
-        <StatTile icon={Package} variant="dark" label="Total Sparepart" value={products.length.toLocaleString('id-ID')} />
-        <StatTile icon={CheckCircle} tone="green" label="Published" value={publishedCount.toLocaleString('id-ID')} />
-        <StatTile icon={FileDashed} tone="amber" label="Draft" value={(products.length - publishedCount).toLocaleString('id-ID')} />
+        {catalogLoading ? (
+          <>
+            <StatTileSkeleton />
+            <StatTileSkeleton />
+            <StatTileSkeleton />
+          </>
+        ) : (
+          <>
+            <StatTile icon={Package} variant="dark" label="Total Sparepart" value={products.length.toLocaleString('id-ID')} />
+            <StatTile icon={CheckCircle} tone="green" label="Published" value={publishedCount.toLocaleString('id-ID')} />
+            <StatTile icon={FileDashed} tone="amber" label="Draft" value={(products.length - publishedCount).toLocaleString('id-ID')} />
+          </>
+        )}
       </div>
 
       {/* Table tile */}
@@ -204,7 +245,10 @@ export default function ProductsPage() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((p) => (
+              {catalogLoading && Array.from({ length: 5 }, (_, i) => (
+                <RowSkeleton key={i} leadingCheckbox cols={['w-32', 'w-20', 'w-16', 'w-16']} />
+              ))}
+              {!catalogLoading && filtered.map((p) => (
                 <tr key={p.id} className="border-b border-[var(--adm-border)] last:border-0">
                   <td className="py-3 pl-5">
                     <AdminCheckbox checked={selected.has(p.id)} onChange={() => toggleOne(p.id)} />
@@ -258,7 +302,7 @@ export default function ProductsPage() {
                               </button>
                               <button
                                 onClick={() => {
-                                  updateProduct(p.id, { published: !p.published })
+                                  togglePublish(p)
                                   close()
                                 }}
                                 className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-[14px] text-black hover:bg-[var(--adm-bg)]"
@@ -276,7 +320,7 @@ export default function ProductsPage() {
                   </td>
                 </tr>
               ))}
-              {filtered.length === 0 && (
+              {!catalogLoading && filtered.length === 0 && (
                 <tr>
                   <td colSpan={6} className="py-10 text-center text-[14px] text-[var(--adm-muted)]">
                     Tidak ada produk yang cocok.
@@ -300,13 +344,13 @@ export default function ProductsPage() {
 
       {/* Delete confirm */}
       {confirmDel && (
-        <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/40 p-4" onClick={() => setConfirmDel(null)}>
-          <div className="adm-card w-full max-w-sm p-0" onClick={(e) => e.stopPropagation()}>
+        <div className="adm-overlay-in fixed inset-0 z-30 flex items-center justify-center bg-black/40 p-4" onClick={() => !deleting && setConfirmDel(null)}>
+          <div className="adm-card adm-panel-in w-full max-w-sm p-0" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-start justify-between p-6 pb-0">
               <span className="flex size-11 items-center justify-center rounded-full bg-[var(--adm-outstock-bg)] text-[var(--adm-danger)]">
                 <Trash size={20} />
               </span>
-              <button onClick={() => setConfirmDel(null)} className="flex size-8 items-center justify-center rounded-full hover:bg-[var(--adm-bg)]" aria-label="Tutup">
+              <button onClick={() => setConfirmDel(null)} disabled={deleting} className="flex size-8 items-center justify-center rounded-full hover:bg-[var(--adm-bg)] disabled:opacity-50" aria-label="Tutup">
                 <X size={18} />
               </button>
             </div>
@@ -318,15 +362,9 @@ export default function ProductsPage() {
             </div>
             <div className="h-px bg-[var(--adm-border)]" />
             <div className="flex justify-end gap-2 p-4">
-              <AdminButton variant="secondary" onClick={() => setConfirmDel(null)}>Batal</AdminButton>
-              <AdminButton
-                variant="danger"
-                onClick={() => {
-                  deleteProduct(confirmDel.id)
-                  setConfirmDel(null)
-                }}
-              >
-                Hapus
+              <AdminButton variant="secondary" onClick={() => setConfirmDel(null)} disabled={deleting}>Batal</AdminButton>
+              <AdminButton variant="danger" onClick={doDelete} disabled={deleting}>
+                {deleting ? 'Menghapus…' : 'Hapus'}
               </AdminButton>
             </div>
           </div>

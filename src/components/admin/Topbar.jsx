@@ -8,12 +8,15 @@ import SearchModal from './SearchModal'
 
 function LogoutModal({ onConfirm, onCancel }) {
   return createPortal(
+    // Re-declare .admin-theme: this portals to document.body, outside the DOM
+    // subtree that defines the --adm-* custom properties the styles below
+    // reference — without it every var() here silently resolves to nothing.
     <div
-      className="fixed inset-0 z-[10000] flex items-center justify-center"
+      className="admin-theme adm-overlay-in fixed inset-0 z-[10000] flex items-center justify-center"
       style={{ background: 'rgba(0,0,0,0.35)' }}
       onMouseDown={(e) => { if (e.target === e.currentTarget) onCancel() }}
     >
-      <div className="w-full max-w-[420px] overflow-hidden rounded-2xl bg-white p-8 shadow-2xl">
+      <div className="adm-panel-in w-full max-w-[420px] overflow-hidden rounded-2xl bg-white p-8 shadow-2xl">
         {/* Icon */}
         <div className="flex size-12 items-center justify-center rounded-full bg-[var(--adm-danger-bg)]">
           <SignOut size={22} className="text-[var(--adm-danger)]" />
@@ -123,7 +126,7 @@ export default function Topbar() {
             </button>
 
             {open && (
-              <div className="adm-card absolute right-0 z-20 mt-2 w-[260px] overflow-hidden p-0">
+              <div className="adm-card adm-panel-in absolute right-0 z-20 mt-2 w-[260px] origin-top-right overflow-hidden p-0">
                 {/* User info */}
                 <div className="flex items-center gap-3 px-4 py-4 border-b border-[var(--adm-border)]">
                   <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-black text-[14px] font-semibold text-[var(--adm-mint)]">

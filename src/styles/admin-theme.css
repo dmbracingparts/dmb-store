@@ -97,6 +97,79 @@
   line-height: 1.1;
 }
 
+/* Motion ---------------------------------------------------------------- */
+
+@keyframes adm-page-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.admin-theme .adm-page-in {
+  animation: adm-page-in 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes adm-overlay-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.admin-theme .adm-overlay-in {
+  animation: adm-overlay-in 0.15s ease-out both;
+}
+
+@keyframes adm-panel-in {
+  from { opacity: 0; transform: scale(0.96) translateY(6px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+.admin-theme .adm-panel-in {
+  animation: adm-panel-in 0.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes adm-toast-in {
+  from { opacity: 0; transform: translateY(10px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.admin-theme .adm-toast-in {
+  animation: adm-toast-in 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.admin-theme .adm-toast-out {
+  animation: adm-toast-in 0.15s ease-in reverse both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-theme .adm-page-in,
+  .admin-theme .adm-overlay-in,
+  .admin-theme .adm-panel-in,
+  .admin-theme .adm-toast-in,
+  .admin-theme .adm-toast-out {
+    animation: none;
+  }
+}
+
+/* Skeleton loading -------------------------------------------------------- */
+
+@keyframes adm-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.admin-theme .adm-skeleton {
+  background: linear-gradient(90deg, var(--adm-bg) 25%, var(--adm-border) 50%, var(--adm-bg) 75%);
+  background-size: 200% 100%;
+  animation: adm-shimmer 1.4s ease-in-out infinite;
+  border-radius: 8px;
+}
+/* For skeletons placed over dark/black surfaces (e.g. the dashboard hero). */
+.admin-theme .adm-skeleton-dark {
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.06) 25%, rgba(255, 255, 255, 0.16) 50%, rgba(255, 255, 255, 0.06) 75%);
+  background-size: 200% 100%;
+  animation: adm-shimmer 1.4s ease-in-out infinite;
+  border-radius: 8px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .admin-theme .adm-skeleton,
+  .admin-theme .adm-skeleton-dark {
+    animation: none;
+  }
+}
+
 /* Thin custom scrollbar for the sidebar */
 .admin-theme .adm-scroll::-webkit-scrollbar {
   width: 6px;

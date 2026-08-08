@@ -6,12 +6,40 @@ import {
 import { useAuth } from '../../context/AuthContext'
 import { useStore } from '../../store/StoreProvider'
 import { formatCurrency } from '../../utils/formatCurrency'
-import { SectionCard, BarChart, StatRow, StatusPill } from '../../components/admin/ui/Bento'
+import { SectionCard, BarChart, BarChartSkeleton, StatRow, StatusPill, Skeleton } from '../../components/admin/ui/Bento'
 
 const STOREFRONT_URL = 'https://dmb-store.vercel.app'
 
+function RecentProductSkeleton() {
+  return (
+    <div className="flex items-center gap-3 p-2">
+      <Skeleton className="size-12 shrink-0 rounded-lg" />
+      <div className="min-w-0 flex-1">
+        <Skeleton className="h-4 w-32" />
+        <Skeleton className="mt-1.5 h-3 w-20" />
+      </div>
+      <div className="flex shrink-0 flex-col items-end gap-1.5">
+        <Skeleton className="h-4 w-16" />
+        <Skeleton className="h-5 w-16 rounded-full" />
+      </div>
+    </div>
+  )
+}
+
+function StatRowSkeleton() {
+  return (
+    <div className="flex items-center gap-3">
+      <Skeleton className="size-11 shrink-0 rounded-xl" />
+      <div className="min-w-0 flex-1">
+        <Skeleton className="h-3 w-24" />
+        <Skeleton className="mt-1.5 h-5 w-10" />
+      </div>
+    </div>
+  )
+}
+
 export default function DashboardPage() {
-  const { products = [], categories = [] } = useStore()
+  const { products = [], categories = [], catalogLoading } = useStore()
   const { currentUser, isEditor } = useAuth()
   const name = currentUser?.name?.split(' ')[0] || 'Admin'
 
@@ -34,7 +62,7 @@ export default function DashboardPage() {
   })
 
   return (
-    <div className="mx-auto flex max-w-[1240px] flex-col gap-4 p-4 lg:p-6">
+    <div className="adm-page-in mx-auto flex max-w-[1240px] flex-col gap-4 p-4 lg:p-6">
       {/* Hero band */}
       <section className="relative overflow-hidden rounded-[20px] bg-black px-6 py-7 text-white lg:px-8">
         {/* decorative pattern */}
@@ -49,12 +77,19 @@ export default function DashboardPage() {
           <div>
             <p className="text-[13px] font-medium text-white/60">Halo, {name} · {today}</p>
             <p className="mt-3 text-[13px] font-medium uppercase tracking-wide text-white/50">Total Produk di Katalog</p>
-            <div className="mt-1.5 flex items-end gap-3">
-              <span className="adm-nums text-[46px] font-semibold leading-none">{products.length}</span>
-              <span className="mb-1 inline-flex items-center rounded-full bg-[var(--adm-mint)] px-2.5 py-1 text-[12px] font-semibold text-black">
-                {published} published
-              </span>
-            </div>
+            {catalogLoading ? (
+              <div className="mt-2 flex items-end gap-3">
+                <Skeleton dark className="h-[46px] w-20" />
+                <Skeleton dark className="mb-1 h-6 w-24 rounded-full" />
+              </div>
+            ) : (
+              <div className="mt-1.5 flex items-end gap-3">
+                <span className="adm-nums text-[46px] font-semibold leading-none">{products.length}</span>
+                <span className="mb-1 inline-flex items-center rounded-full bg-[var(--adm-mint)] px-2.5 py-1 text-[12px] font-semibold text-black">
+                  {published} published
+                </span>
+              </div>
+            )}
             <p className="mt-2.5 text-[13px] text-white/50">Sinkron langsung ke storefront DMB</p>
           </div>
 
@@ -92,7 +127,11 @@ export default function DashboardPage() {
           subtitle="Sebaran katalog"
           className="lg:col-span-2"
         >
-          {distribution.length === 0 ? (
+          {catalogLoading ? (
+            <div className="pt-2">
+              <BarChartSkeleton bars={5} height={220} />
+            </div>
+          ) : distribution.length === 0 ? (
             <p className="py-16 text-center text-[14px] text-[var(--adm-muted)]">Belum ada produk.</p>
           ) : (
             <div className="pt-2">
@@ -103,10 +142,21 @@ export default function DashboardPage() {
 
         <SectionCard title="Ringkasan">
           <div className="flex flex-col gap-5 pt-1">
-            <StatRow icon={CheckCircle} tone="green" label="Produk Published" value={published} />
-            <StatRow icon={FileDashed} tone="amber" label="Produk Draft" value={draft} />
-            <StatRow icon={Sparkle} tone="brand" label="Produk Unggulan" value={featured} />
-            <StatRow icon={Tag} tone="blue" label="Total Kategori" value={totalCategories} />
+            {catalogLoading ? (
+              <>
+                <StatRowSkeleton />
+                <StatRowSkeleton />
+                <StatRowSkeleton />
+                <StatRowSkeleton />
+              </>
+            ) : (
+              <>
+                <StatRow icon={CheckCircle} tone="green" label="Produk Published" value={published} />
+                <StatRow icon={FileDashed} tone="amber" label="Produk Draft" value={draft} />
+                <StatRow icon={Sparkle} tone="brand" label="Produk Unggulan" value={featured} />
+                <StatRow icon={Tag} tone="blue" label="Total Kategori" value={totalCategories} />
+              </>
+            )}
           </div>
         </SectionCard>
       </div>
@@ -123,7 +173,11 @@ export default function DashboardPage() {
           </Link>
         }
       >
-        {recentProducts.length === 0 ? (
+        {catalogLoading ? (
+          <div className="grid gap-1 sm:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 6 }, (_, i) => <RecentProductSkeleton key={i} />)}
+          </div>
+        ) : recentProducts.length === 0 ? (
           <p className="py-6 text-center text-[14px] text-[var(--adm-muted)]">Belum ada produk.</p>
         ) : (
           <div className="grid gap-1 sm:grid-cols-2 lg:grid-cols-3">

@@ -3,6 +3,8 @@ import { Navigate } from 'react-router-dom'
 import { Plus, PencilSimple, Trash, Key, X } from '@phosphor-icons/react'
 import { useAuth } from '../../context/AuthContext'
 import { AdminButton, AdminInput, AdminSelect, Field } from '../../components/admin/ui/FormControls'
+import { RowSkeleton } from '../../components/admin/ui/Bento'
+import { useToast } from '../../components/admin/ui/Toast'
 import { listStaff, createStaff, updateStaff, deleteStaff, resetPassword } from '../../lib/staffApi'
 
 const ROLES = [
@@ -28,8 +30,8 @@ function RoleBadge({ role }) {
 
 function ModalShell({ title, onClose, children }) {
   return (
-    <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
-      <div className="adm-card w-full max-w-md p-0" onClick={(e) => e.stopPropagation()}>
+    <div className="adm-overlay-in fixed inset-0 z-30 flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
+      <div className="adm-card adm-panel-in w-full max-w-md p-0" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between p-6 pb-0">
           <h2 className="text-[18px] font-medium text-black">{title}</h2>
           <button onClick={onClose} className="flex size-8 items-center justify-center rounded-full hover:bg-[var(--adm-bg)]" aria-label="Tutup">
@@ -62,7 +64,7 @@ function StaffFormModal({ isNew, initial, onClose, onSaved }) {
       } else {
         await updateStaff(initial.id, { name, job, email, role })
       }
-      onSaved()
+      onSaved(isNew)
     } catch (err) {
       setError(err.message)
     } finally {
@@ -144,6 +146,7 @@ function ResetPasswordModal({ staff, onClose, onSaved }) {
 
 function StaffPageInner() {
   const { currentUser } = useAuth()
+  const toast = useToast()
   const [staff, setStaff] = useState([])
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState('')
@@ -151,6 +154,7 @@ function StaffPageInner() {
   const [resetModal, setResetModal] = useState(null) // staff row | null
   const [confirmDel, setConfirmDel] = useState(null) // staff row | null
   const [deleteError, setDeleteError] = useState('')
+  const [deleting, setDeleting] = useState(false)
 
   const refresh = () => {
     setLoading(true)
@@ -166,24 +170,35 @@ function StaffPageInner() {
   }, [])
 
   const closeForm = () => setFormModal(null)
-  const onSaved = () => {
+  const onSaved = (isNew) => {
+    toast.success(isNew ? 'User ditambahkan' : 'User diperbarui')
     closeForm()
     refresh()
   }
 
+  const onResetSaved = () => {
+    toast.success('Password berhasil direset', { description: resetModal?.name })
+    setResetModal(null)
+  }
+
   const doDelete = async () => {
     setDeleteError('')
+    setDeleting(true)
     try {
+      const name = confirmDel.name
       await deleteStaff(confirmDel.id)
       setConfirmDel(null)
+      toast.success('User dihapus', { description: name })
       refresh()
     } catch (err) {
       setDeleteError(err.message)
+    } finally {
+      setDeleting(false)
     }
   }
 
   return (
-    <div className="mx-auto flex max-w-[1240px] flex-col gap-4 p-4 lg:p-6">
+    <div className="adm-page-in mx-auto flex max-w-[1240px] flex-col gap-4 p-4 lg:p-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-[24px] font-semibold tracking-tight text-[var(--adm-ink)]">Kelola User</h1>
@@ -209,11 +224,9 @@ function StaffPageInner() {
               </tr>
             </thead>
             <tbody>
-              {loading && (
-                <tr>
-                  <td colSpan={5} className="py-10 text-center text-[var(--adm-muted)]">Memuat…</td>
-                </tr>
-              )}
+              {loading && Array.from({ length: 3 }, (_, i) => (
+                <RowSkeleton key={i} withAvatar={false} cols={['w-28', 'w-16', 'w-32', 'w-20']} />
+              ))}
               {!loading && loadError && (
                 <tr>
                   <td colSpan={5} className="py-10 text-center text-[var(--adm-danger)]">{loadError}</td>
@@ -283,18 +296,18 @@ function StaffPageInner() {
         <ResetPasswordModal
           staff={resetModal}
           onClose={() => setResetModal(null)}
-          onSaved={() => setResetModal(null)}
+          onSaved={onResetSaved}
         />
       )}
 
       {confirmDel && (
-        <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/40 p-4" onClick={() => setConfirmDel(null)}>
-          <div className="adm-card w-full max-w-sm p-0" onClick={(e) => e.stopPropagation()}>
+        <div className="adm-overlay-in fixed inset-0 z-30 flex items-center justify-center bg-black/40 p-4" onClick={() => !deleting && setConfirmDel(null)}>
+          <div className="adm-card adm-panel-in w-full max-w-sm p-0" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-start justify-between p-6 pb-0">
               <span className="flex size-11 items-center justify-center rounded-full bg-[var(--adm-outstock-bg)] text-[var(--adm-danger)]">
                 <Trash size={20} />
               </span>
-              <button onClick={() => setConfirmDel(null)} className="flex size-8 items-center justify-center rounded-full hover:bg-[var(--adm-bg)]" aria-label="Tutup">
+              <button onClick={() => setConfirmDel(null)} disabled={deleting} className="flex size-8 items-center justify-center rounded-full hover:bg-[var(--adm-bg)] disabled:opacity-50" aria-label="Tutup">
                 <X size={18} />
               </button>
             </div>
@@ -307,8 +320,10 @@ function StaffPageInner() {
             </div>
             <div className="h-px bg-[var(--adm-border)]" />
             <div className="flex justify-end gap-2 p-4">
-              <AdminButton variant="secondary" onClick={() => setConfirmDel(null)}>Batal</AdminButton>
-              <AdminButton variant="danger" onClick={doDelete}>Hapus</AdminButton>
+              <AdminButton variant="secondary" onClick={() => setConfirmDel(null)} disabled={deleting}>Batal</AdminButton>
+              <AdminButton variant="danger" onClick={doDelete} disabled={deleting}>
+                {deleting ? 'Menghapus…' : 'Hapus'}
+              </AdminButton>
             </div>
           </div>
         </div>

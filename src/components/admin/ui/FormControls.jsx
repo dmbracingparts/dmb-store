@@ -11,7 +11,7 @@ export function AdminButton({
   ...props
 }) {
   const base =
-    'inline-flex items-center justify-center gap-2 rounded-[100px] px-5 py-3 text-[16px] font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
+    'inline-flex items-center justify-center gap-2 rounded-[100px] px-5 py-3 text-[16px] font-medium transition-[colors,transform] active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100'
   const variants = {
     primary: 'bg-[var(--adm-mint)] text-black hover:brightness-95',
     forest: 'bg-[var(--adm-forest-500)] text-white hover:opacity-90',

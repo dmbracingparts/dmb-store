@@ -6,6 +6,7 @@ import {
 import { useAuth } from '../../context/AuthContext'
 import { useStore } from '../../store/StoreProvider'
 import { formatCurrency } from '../../utils/formatCurrency'
+import { useToast } from '../../components/admin/ui/Toast'
 
 const BRANDS = ['NHK', 'GS Astra', 'RCB', 'Shell', 'IRC', 'NGK', 'Osram', 'TDR', 'Yamalube', 'Rossi', 'Honda Genuine', 'Daytona', 'Acerbis', 'AHM', 'Corsa', 'Yamaha Genuine', 'FDR']
 
@@ -48,7 +49,9 @@ function ProductFormPageInner() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { products, categories, addProduct, updateProduct } = useStore()
+  const toast = useToast()
   const fileInputRef = useRef(null)
+  const [saving, setSaving] = useState(false)
 
   const existing = id && id !== 'new' ? products.find((p) => p.id === id) : null
 
@@ -82,6 +85,7 @@ function ProductFormPageInner() {
   const removeImg = (idx) => setImages((prev) => prev.filter((_, i) => i !== idx))
 
   const handleSave = async (asDraft = false) => {
+    if (saving) return
     const payload = {
       name,
       category,
@@ -96,19 +100,26 @@ function ProductFormPageInner() {
       isFeatured: existing?.isFeatured || false,
       featuredOrder: existing?.featuredOrder ?? null,
     }
-    if (isNew) {
-      const nums = products.map((p) => /^p(\d+)$/.exec(p.id)).filter(Boolean).map((m) => Number(m[1]))
-      await addProduct({ ...payload, id: 'p' + ((nums.length ? Math.max(...nums) : 0) + 1) })
-    } else {
-      await updateProduct(id, payload)
+    setSaving(true)
+    try {
+      if (isNew) {
+        const nums = products.map((p) => /^p(\d+)$/.exec(p.id)).filter(Boolean).map((m) => Number(m[1]))
+        await addProduct({ ...payload, id: 'p' + ((nums.length ? Math.max(...nums) : 0) + 1) })
+      } else {
+        await updateProduct(id, payload)
+      }
+      toast.success(asDraft ? 'Disimpan sebagai draft' : 'Produk dipublish', { description: name })
+      navigate('/admin/products')
+    } catch (e) {
+      toast.error('Gagal menyimpan produk', { description: e.message })
+      setSaving(false)
     }
-    navigate('/admin/products')
   }
 
   const catOptions = categories.map((c) => ({ value: c.id, label: c.name }))
 
   return (
-    <div className="mx-auto max-w-[1240px] px-4 pb-28 pt-4 lg:px-6 lg:pt-6">
+    <div className="adm-page-in mx-auto max-w-[1240px] px-4 pb-28 pt-4 lg:px-6 lg:pt-6">
       {/* Header */}
       <div className="mb-4">
         <h1 className="text-[24px] font-semibold tracking-tight text-[var(--adm-ink)]">
@@ -288,17 +299,19 @@ function ProductFormPageInner() {
           <button
             type="button"
             onClick={() => handleSave(true)}
-            className="rounded-full border border-[var(--adm-border)] bg-white px-5 py-2.5 text-[13px] font-medium text-[var(--adm-ink)] hover:bg-[var(--adm-bg)]"
+            disabled={saving}
+            className="rounded-full border border-[var(--adm-border)] bg-white px-5 py-2.5 text-[13px] font-medium text-[var(--adm-ink)] transition-transform hover:bg-[var(--adm-bg)] active:scale-[0.97] disabled:opacity-50"
           >
-            Simpan Draft
+            {saving ? 'Menyimpan…' : 'Simpan Draft'}
           </button>
           <button
             type="button"
             onClick={() => handleSave(false)}
-            className="rounded-full px-6 py-2.5 text-[13px] font-semibold text-black"
+            disabled={saving}
+            className="rounded-full px-6 py-2.5 text-[13px] font-semibold text-black transition-transform active:scale-[0.97] disabled:opacity-50"
             style={{ background: 'var(--adm-mint)' }}
           >
-            Submit Produk
+            {saving ? 'Menyimpan…' : 'Submit Produk'}
           </button>
         </div>
       </div>

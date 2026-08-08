@@ -135,6 +135,73 @@ export function BarRow({ label, value, max }) {
   )
 }
 
+// Shimmering placeholder block — the base skeleton primitive.
+export function Skeleton({ className = '', style, dark = false }) {
+  return <div className={`${dark ? 'adm-skeleton-dark' : 'adm-skeleton'} ${className}`} style={style} />
+}
+
+// Stat tile shaped like StatTile — same footprint so the grid doesn't jump
+// once real data replaces it.
+export function StatTileSkeleton() {
+  return (
+    <div className="adm-tile flex items-center gap-3.5 p-4">
+      <Skeleton className="size-11 shrink-0 rounded-xl" />
+      <div className="flex min-w-0 flex-1 flex-col gap-2">
+        <Skeleton className="h-6 w-14" />
+        <Skeleton className="h-3 w-20" />
+      </div>
+    </div>
+  )
+}
+
+// A table row shaped skeleton — `cols` widths (tailwind width classes) let
+// each caller mimic its own column layout.
+export function RowSkeleton({ cols = ['w-40', 'w-24', 'w-20', 'w-16'], withAvatar = true, leadingCheckbox = false }) {
+  return (
+    <tr className="border-b border-[var(--adm-border)] last:border-0">
+      {leadingCheckbox && (
+        <td className="py-3 pl-5">
+          <Skeleton className="size-5 rounded-[6px]" />
+        </td>
+      )}
+      {withAvatar ? (
+        <td className={`py-3 ${leadingCheckbox ? 'pr-4' : 'pl-5'}`}>
+          <div className="flex items-center gap-3">
+            <Skeleton className="size-11 shrink-0 rounded-lg" />
+            <Skeleton className={`h-4 ${cols[0]}`} />
+          </div>
+        </td>
+      ) : (
+        <td className={`py-3 ${leadingCheckbox ? 'pr-4' : 'pl-5'}`}>
+          <Skeleton className={`h-4 ${cols[0]}`} />
+        </td>
+      )}
+      {cols.slice(1).map((w, i) => (
+        <td key={i} className="py-3 pr-4">
+          <Skeleton className={`h-4 ${w}`} />
+        </td>
+      ))}
+      <td className="py-3 pr-5">
+        <Skeleton className="h-8 w-24" />
+      </td>
+    </tr>
+  )
+}
+
+// Bar-chart shaped skeleton, mirrors BarChart's footprint.
+export function BarChartSkeleton({ bars = 5, height = 220 }) {
+  return (
+    <div className="flex items-end gap-2 sm:gap-4" style={{ height }}>
+      {Array.from({ length: bars }, (_, i) => (
+        <div key={i} className="flex flex-1 flex-col items-center gap-2">
+          <Skeleton className="w-full max-w-[56px]" style={{ height: `${40 + ((i * 17) % 50)}%` }} />
+          <Skeleton className="h-3 w-12" />
+        </div>
+      ))}
+    </div>
+  )
+}
+
 // Published / Draft status pill.
 export function StatusPill({ published }) {
   const s = published

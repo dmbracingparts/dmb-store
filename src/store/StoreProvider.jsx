@@ -10,6 +10,9 @@ const StoreContext = createContext(null)
 
 export function StoreProvider({ children }) {
   const [data, setData] = useState(() => loadData())
+  // Only the admin build fetches products/categories from the API on mount;
+  // pages read this to show skeletons instead of an empty catalog flash.
+  const [catalogLoading, setCatalogLoading] = useState(IS_ADMIN)
 
   useEffect(() => {
     saveData(data)
@@ -22,6 +25,7 @@ export function StoreProvider({ children }) {
     Promise.all([adminListProducts(), fetchCategories()])
       .then(([products, categories]) => setData((d) => ({ ...d, products, categories })))
       .catch((e) => console.error('admin data load failed', e))
+      .finally(() => setCatalogLoading(false))
   }, [])
 
   // Products — the storefront reads products/categories from the API (see
@@ -105,6 +109,7 @@ export function StoreProvider({ children }) {
     data,
     products: data.products || [],
     categories: data.categories || [],
+    catalogLoading,
     users: data.users,
     orders: data.orders,
     promos: data.promos,
