@@ -50,12 +50,12 @@ test('verifySession returns null for missing token', async () => {
 test('requireOwner true only for owner role', () => {
   assert.equal(requireOwner({ id: '1', role: 'owner' }), true)
   assert.equal(requireOwner({ id: '1', role: 'staff' }), false)
-  assert.equal(requireOwner(null), null)
+  assert.equal(requireOwner(null), false)
 })
 
 test('requireEditor true for owner and staff, false otherwise', () => {
   assert.equal(requireEditor({ id: '1', role: 'owner' }), true)
   assert.equal(requireEditor({ id: '1', role: 'staff' }), true)
   assert.equal(requireEditor({ id: '1', role: 'viewer' }), false)
-  assert.equal(requireEditor(null), null)
+  assert.equal(requireEditor(null), false)
 })

@@ -3,7 +3,11 @@ import { SignJWT, jwtVerify } from 'jose'
 
 const COOKIE = 'dmb_session'
 const MAX_AGE = 60 * 60 * 24 * 7
-const secret = () => new TextEncoder().encode(process.env.SESSION_SECRET || '')
+const secret = () => {
+  const s = process.env.SESSION_SECRET
+  if (!s) throw new Error('SESSION_SECRET is not set')
+  return new TextEncoder().encode(s)
+}
 
 export async function hashPassword(pw) {
   return bcrypt.hash(String(pw), 12)
@@ -31,7 +35,12 @@ export async function verifySession(token) {
 export function readSessionCookie(req) {
   const raw = req.headers.cookie || ''
   const m = raw.match(new RegExp(`(?:^|; )${COOKIE}=([^;]+)`))
-  return m ? decodeURIComponent(m[1]) : null
+  if (!m) return null
+  try {
+    return decodeURIComponent(m[1])
+  } catch {
+    return null
+  }
 }
 export function setSessionCookie(res, token) {
   res.setHeader('set-cookie', `${COOKIE}=${encodeURIComponent(token)}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=${MAX_AGE}`)
@@ -45,10 +54,10 @@ export async function requireSession(req) {
   return { ok: true, session }
 }
 export function requireOwner(session) {
-  return session && session.role === 'owner'
+  return !!session && session.role === 'owner'
 }
 export function requireEditor(session) {
-  return session && (session.role === 'owner' || session.role === 'staff')
+  return !!session && (session.role === 'owner' || session.role === 'staff')
 }
 // CSRF defense-in-depth: same-origin check for mutations.
 export function checkOrigin(req) {
