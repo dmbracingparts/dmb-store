@@ -1,6 +1,6 @@
 import { getSql } from '../../../_lib/db.js'
-import { setPassword } from '../../../_lib/staff.js'
-import { requireSession, requireAdministrator, checkOrigin, hashPassword } from '../../../_lib/auth.js'
+import { getById, setPassword } from '../../../_lib/staff.js'
+import { requireSession, requireAdministrator, checkOrigin, hashPassword, signSession, setSessionCookie } from '../../../_lib/auth.js'
 import { json } from '../../../_lib/http.js'
 
 async function readBody(req) {
@@ -29,6 +29,12 @@ export default async function handler(req, res) {
     const hash = await hashPassword(newPassword)
     const ok = await setPassword(getSql(), id, hash)
     if (!ok) return json(res, 404, { error: 'User tidak ditemukan' })
+    // Resetting your own password also bumped your token_version; re-issue this
+    // session's cookie so the admin stays logged in (other sessions revoked).
+    if (id === auth.session.id) {
+      const fresh = await getById(getSql(), id)
+      if (fresh) setSessionCookie(res, await signSession(fresh))
+    }
     return json(res, 200, { ok: true })
   } catch (e) {
     console.error('reset-password', e)

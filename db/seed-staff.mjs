@@ -7,7 +7,7 @@ const sql = neon(process.env.DATABASE_URL)
 async function run() {
   // migrations — the neon() HTTP driver runs one statement per call, so split
   // each DDL file into individual statements and run them in order.
-  for (const file of ['002_staff.sql', '003_rename_roles.sql']) {
+  for (const file of ['002_staff.sql', '003_rename_roles.sql', '004_token_version.sql']) {
     const ddl = readFileSync(new URL(`./migrations/${file}`, import.meta.url), 'utf8')
     const statements = ddl.split(';').map((s) => s.trim()).filter(Boolean)
     for (const stmt of statements) {

@@ -1,5 +1,7 @@
 import bcrypt from 'bcryptjs'
 import { SignJWT, jwtVerify } from 'jose'
+import { getSql } from './db.js'
+import { getById } from './staff.js'
 
 const COOKIE = 'dmb_session'
 const MAX_AGE = 60 * 60 * 24 * 7
@@ -16,7 +18,7 @@ export async function verifyPassword(pw, hash) {
   return bcrypt.compare(String(pw), hash || '')
 }
 export async function signSession(user) {
-  return new SignJWT({ role: user.role })
+  return new SignJWT({ role: user.role, tv: user.token_version ?? 0 })
     .setProtectedHeader({ alg: 'HS256' })
     .setSubject(String(user.id))
     .setIssuedAt()
@@ -27,7 +29,7 @@ export async function verifySession(token) {
   if (!token) return null
   try {
     const { payload } = await jwtVerify(token, secret(), { algorithms: ['HS256'] })
-    return { id: payload.sub, role: payload.role }
+    return { id: payload.sub, role: payload.role, tv: payload.tv }
   } catch {
     return null
   }
@@ -51,10 +53,26 @@ export function setSessionCookie(res, token) {
 export function clearSessionCookie(res) {
   res.setHeader('set-cookie', `${COOKIE}=; HttpOnly;${SECURE()} SameSite=Strict; Path=/; Max-Age=0`)
 }
-export async function requireSession(req) {
-  const session = await verifySession(readSessionCookie(req))
-  if (!session) return { ok: false, status: 401, error: 'Belum login' }
-  return { ok: true, session }
+// Validates the session against the database, not just the JWT signature:
+//  - the account must still exist (deleted users are logged out immediately),
+//  - the token's version must match the row's current token_version (bumped on
+//    every password change/reset, so old sessions die), and
+//  - the role is taken LIVE from the row, so a demotion applies on the next
+//    request instead of lingering until the 7-day token expires.
+// `sql` is injectable so the http gates can be unit-tested without a database.
+export async function requireSession(req, sql = getSql()) {
+  const payload = await verifySession(readSessionCookie(req))
+  if (!payload) return { ok: false, status: 401, error: 'Belum login' }
+  let row
+  try {
+    row = await getById(sql, payload.id)
+  } catch {
+    return { ok: false, status: 500, error: 'Terjadi kesalahan pada server' }
+  }
+  if (!row || row.token_version !== payload.tv) {
+    return { ok: false, status: 401, error: 'Sesi berakhir, silakan masuk lagi' }
+  }
+  return { ok: true, session: { id: row.id, role: row.role } }
 }
 export function requireAdministrator(session) {
   return !!session && session.role === 'administrator'

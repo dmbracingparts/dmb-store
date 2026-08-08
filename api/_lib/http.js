@@ -12,16 +12,16 @@ export function json(res, status, body) {
 // Read gate: any authenticated staff session, regardless of role. Lets a
 // `viewer` load the catalog read-only (the UI already hides every write
 // control from non-editors via isEditor).
-export async function requireAdminSession(req) {
+export async function requireAdminSession(req, sql) {
   if (process.env.APP_TARGET !== 'admin') return { ok: false, status: 404, error: 'Not found' }
-  const auth = await requireSession(req)
+  const auth = await requireSession(req, sql)
   if (!auth.ok) return auth
   return { ok: true, session: auth.session }
 }
 
 // Write gate: requires a valid editor (administrator|inputer) session.
-export async function requireEditorSession(req) {
-  const auth = await requireAdminSession(req)
+export async function requireEditorSession(req, sql) {
+  const auth = await requireAdminSession(req, sql)
   if (!auth.ok) return auth
   if (!requireEditor(auth.session)) return { ok: false, status: 403, error: 'Tidak punya akses' }
   return { ok: true, session: auth.session }

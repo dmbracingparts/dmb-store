@@ -87,7 +87,12 @@ export async function updateStaff(sql, id, { name, job, email, role }) {
 }
 
 export async function setPassword(sql, id, passwordHash) {
-  const rows = await sql`update staff set password_hash = ${passwordHash}, updated_at = now() where id = ${id} returning id`
+  // Bumping token_version invalidates every existing session for this user
+  // (their JWTs carry the old version) — so a password reset/change forces a
+  // re-login everywhere. The caller may re-issue the current session's cookie.
+  const rows = await sql`update staff
+    set password_hash = ${passwordHash}, token_version = token_version + 1, updated_at = now()
+    where id = ${id} returning id`
   return rows.length > 0
 }
 

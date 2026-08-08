@@ -1,6 +1,6 @@
 import { getSql } from '../_lib/db.js'
 import { getById, setPassword } from '../_lib/staff.js'
-import { requireSession, checkOrigin, verifyPassword, hashPassword } from '../_lib/auth.js'
+import { requireSession, checkOrigin, verifyPassword, hashPassword, signSession, setSessionCookie } from '../_lib/auth.js'
 import { json } from '../_lib/http.js'
 
 async function readBody(req) {
@@ -34,6 +34,10 @@ export default async function handler(req, res) {
 
     const hash = await hashPassword(newPassword)
     await setPassword(getSql(), row.id, hash)
+    // token_version was bumped (revoking other sessions); re-issue this one so
+    // the user isn't logged out of the tab they just changed the password in.
+    const fresh = await getById(getSql(), row.id)
+    if (fresh) setSessionCookie(res, await signSession(fresh))
     return json(res, 200, { ok: true })
   } catch (e) {
     return json(res, 500, { error: 'Terjadi kesalahan pada server' })
