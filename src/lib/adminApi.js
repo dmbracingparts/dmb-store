@@ -1,9 +1,8 @@
-const SECRET = import.meta.env.VITE_ADMIN_SECRET || ''
-
 async function send(url, method, data) {
   const res = await fetch(url, {
     method,
-    headers: { 'content-type': 'application/json', 'x-admin-secret': SECRET },
+    credentials: 'include',
+    headers: { 'content-type': 'application/json' },
     body: data ? JSON.stringify(data) : undefined,
   })
   const body = await res.json().catch(() => ({}))

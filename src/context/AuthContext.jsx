@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState } from 'react'
 import { useStore } from '../store/StoreProvider'
 
 const AuthContext = createContext(null)
+const IS_ADMIN = import.meta.env.VITE_APP_TARGET === 'admin'
 
 const GOOGLE_USER = {
   id: 'u-google',
@@ -14,69 +15,76 @@ const GOOGLE_USER = {
   defaultAddressId: null,
 }
 
-// The admin/owner account is provisioned from env vars set ONLY on the
-// protected admin deployment — its credentials never ship in the public
-// storefront bundle. The dev-only fallback keeps `npm run dev:admin` working
-// locally and is compiled out of production builds (import.meta.env.DEV is
-// false there, so the string literals are dead-code eliminated).
-const ADMIN_EMAIL = import.meta.env.VITE_ADMIN_EMAIL || (import.meta.env.DEV ? 'admin@dmb.com' : '')
-const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD || (import.meta.env.DEV ? 'admin123' : '')
-const ADMIN_USER =
-  ADMIN_EMAIL && ADMIN_PASSWORD
-    ? {
-        id: 'u-admin',
-        name: 'Admin DMB',
-        email: ADMIN_EMAIL,
-        phone: '',
-        password: ADMIN_PASSWORD,
-        provider: 'password',
-        role: 'admin',
-        addresses: [],
-        defaultAddressId: null,
-      }
-    : null
-
 export function AuthProvider({ children }) {
   const { users: storeUsers, addUser } = useStore()
-  // Admin lives only in the auth layer (never persisted to the store), and
-  // only when provisioned — so the public build's user list has no admin.
-  const users =
-    ADMIN_USER && !storeUsers.some((u) => u.id === ADMIN_USER.id)
-      ? [...storeUsers, ADMIN_USER]
-      : storeUsers
+  const [currentUser, setCurrentUser] = useState(null)
+  const [loading, setLoading] = useState(IS_ADMIN)
+  const [storefrontUserId, setStorefrontUserId] = useState(() => (!IS_ADMIN ? localStorage.getItem('dmb:auth') : null))
 
-  const [currentUserId, setCurrentUserId] = useState(() => localStorage.getItem('dmb:auth') || null)
-
+  // Admin: restore session from the server on mount.
   useEffect(() => {
-    if (currentUserId) localStorage.setItem('dmb:auth', currentUserId)
+    if (!IS_ADMIN) return
+    fetch('/api/admin/me', { credentials: 'include' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => setCurrentUser(d?.user || null))
+      .catch(() => setCurrentUser(null))
+      .finally(() => setLoading(false))
+  }, [])
+
+  // Storefront: persist the customer id locally.
+  useEffect(() => {
+    if (IS_ADMIN) return
+    if (storefrontUserId) localStorage.setItem('dmb:auth', storefrontUserId)
     else localStorage.removeItem('dmb:auth')
-  }, [currentUserId])
+  }, [storefrontUserId])
 
-  const currentUser = users.find((u) => u.id === currentUserId) || null
+  const storefrontUser = !IS_ADMIN ? (storeUsers.find((u) => u.id === storefrontUserId) || null) : null
+  const user = IS_ADMIN ? currentUser : storefrontUser
 
-  const login = (email, password) => {
-    const user = users.find((u) => u.email.toLowerCase() === String(email).toLowerCase())
-    if (!user) return { ok: false, error: 'Email tidak ditemukan.' }
-    if (!user.password || String(password) !== String(user.password)) {
-      return { ok: false, error: 'Password salah.' }
+  const login = async (email, password) => {
+    if (IS_ADMIN) {
+      const r = await fetch('/api/admin/login', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      })
+      const d = await r.json().catch(() => ({}))
+      if (!r.ok) return { ok: false, error: d.error || 'Login gagal' }
+      setCurrentUser(d.user)
+      return { ok: true, user: d.user }
     }
-    setCurrentUserId(user.id)
-    return { ok: true, user }
+    const u = storeUsers.find((x) => x.email.toLowerCase() === String(email).toLowerCase())
+    if (!u) return { ok: false, error: 'Email tidak ditemukan.' }
+    if (!u.password || String(password) !== String(u.password)) return { ok: false, error: 'Password salah.' }
+    setStorefrontUserId(u.id)
+    return { ok: true, user: u }
   }
 
+  const logout = async () => {
+    if (IS_ADMIN) {
+      await fetch('/api/admin/logout', { method: 'POST', credentials: 'include' }).catch(() => {})
+      setCurrentUser(null)
+      return
+    }
+    setStorefrontUserId(null)
+  }
+
+  // Storefront-only: sign in with the fixture Google account.
   const loginWithGoogle = () => {
-    const existing = users.find((u) => u.id === GOOGLE_USER.id)
+    const existing = storeUsers.find((u) => u.id === GOOGLE_USER.id)
     if (!existing) addUser(GOOGLE_USER)
-    setCurrentUserId(GOOGLE_USER.id)
+    setStorefrontUserId(GOOGLE_USER.id)
     return { ok: true }
   }
 
+  // Storefront-only: register a new customer account.
   const register = ({ name, email, phone, password }) => {
-    if (users.some((u) => u.email.toLowerCase() === String(email).toLowerCase())) {
+    if (storeUsers.some((u) => u.email.toLowerCase() === String(email).toLowerCase())) {
       return { ok: false, error: 'Email sudah terdaftar.' }
     }
-    const user = {
-      id: 'u' + (users.length + 1) + '-' + email.split('@')[0],
+    const newUser = {
+      id: 'u' + (storeUsers.length + 1) + '-' + email.split('@')[0],
       name,
       email,
       phone: phone || '',
@@ -85,18 +93,18 @@ export function AuthProvider({ children }) {
       addresses: [],
       defaultAddressId: null,
     }
-    addUser(user)
-    setCurrentUserId(user.id)
+    addUser(newUser)
+    setStorefrontUserId(newUser.id)
     return { ok: true }
   }
 
-  const logout = () => setCurrentUserId(null)
-
-  const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'owner'
+  const isOwner = user?.role === 'owner'
+  const isEditor = IS_ADMIN ? (user?.role === 'owner' || user?.role === 'staff') : false
+  const isAdmin = IS_ADMIN ? !!user : (user?.role === 'admin' || user?.role === 'owner')
 
   return (
     <AuthContext.Provider
-      value={{ currentUser, isLoggedIn: !!currentUser, isAdmin, login, loginWithGoogle, register, logout }}
+      value={{ currentUser: user, isLoggedIn: !!user, isAdmin, isOwner, isEditor, loading, login, logout, loginWithGoogle, register }}
     >
       {children}
     </AuthContext.Provider>

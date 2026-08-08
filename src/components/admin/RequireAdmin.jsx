@@ -4,7 +4,11 @@ import { ADMIN_LOGIN_SLUG } from '../../config/features'
 
 // SP4: gate for /admin/* — logged-out → login; logged-in non-admin → denied.
 export default function RequireAdmin({ children }) {
-  const { isLoggedIn, isAdmin } = useAuth()
+  const { isLoggedIn, isAdmin, loading } = useAuth()
+
+  // Session restore (`/api/admin/me`) hasn't resolved yet — wait rather than
+  // redirect, or a logged-in admin gets bounced to login on every refresh.
+  if (loading) return null
 
   // Logged-out visitors go to the secret sign-in slug. The admin app runs on
   // its own deployment behind Deployment Protection, so there's no public to

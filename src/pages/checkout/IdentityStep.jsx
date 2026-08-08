@@ -17,10 +17,10 @@ export default function IdentityStep({ onChooseGuest, onLoggedIn }) {
     onChooseGuest()
   }
 
-  function handleLogin(e) {
+  async function handleLogin(e) {
     e.preventDefault()
     setError('')
-    const res = login(email, password)
+    const res = await login(email, password)
     if (!res.ok) {
       setError(res.error || 'Gagal masuk. Coba lagi.')
       return

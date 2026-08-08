@@ -18,21 +18,16 @@ export default function AdminLoginPage() {
   const [remember, setRemember] = useState(true)
   const [error, setError] = useState('')
 
-  const submit = (e) => {
+  const submit = async (e) => {
     e.preventDefault()
     setError('')
     if (!email.trim() || !password.trim()) {
       setError('Email dan password wajib diisi.')
       return
     }
-    const res = login(email, password)
+    const res = await login(email, password)
     if (!res.ok) {
       setError(res.error)
-      return
-    }
-    const isAdmin = res.user?.role === 'owner' || res.user?.role === 'admin'
-    if (!isAdmin) {
-      setError('Akun ini bukan admin. Gunakan akun pengelola toko.')
       return
     }
     navigate(location.state?.from || '/admin')
