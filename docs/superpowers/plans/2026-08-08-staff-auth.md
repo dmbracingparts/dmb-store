@@ -15,7 +15,7 @@
 - Code style: 2-space, NO semicolons, single quotes.
 - Passwords: bcrypt cost 12; min length 8; never store/log/return plaintext.
 - Session cookie: `HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=604800`, JWT (HS256, `SESSION_SECRET`).
-- Roles: `owner` (products + user mgmt), `staff` (products only). Least privilege enforced server-side.
+- Roles: `owner` (products + user mgmt), `staff` (products only), `viewer` (read-only). Product writes need owner/staff; user mgmt needs owner. Least privilege enforced server-side; UI hides write controls for `viewer`.
 - Admin endpoints stay gated by `APP_TARGET==='admin'` (404 otherwise) **and** a valid session.
 - Login errors generic ("Email atau password salah"); lockout after 5 fails for 15 min.
 - Never echo `.env.local`.
@@ -36,7 +36,7 @@
 
 **Files:** Create `api/_lib/auth.js`; Test `tests/auth.test.js`.
 
-**Produces:** `hashPassword(pw)`, `verifyPassword(pw, hash)`, `signSession({id,role})`, `verifySession(token)`, `readSessionCookie(req)`, `setSessionCookie(res, token)`, `clearSessionCookie(res)`, `requireSession(req)`, `requireOwner(user)`, `checkOrigin(req)`.
+**Produces:** `hashPassword(pw)`, `verifyPassword(pw, hash)`, `signSession({id,role})`, `verifySession(token)`, `readSessionCookie(req)`, `setSessionCookie(res, token)`, `clearSessionCookie(res)`, `requireSession(req)`, `requireOwner(session)`, `requireEditor(session)` (owner|staff), `checkOrigin(req)`.
 
 - [ ] **Failing tests** (`tests/auth.test.js`): hash→verify roundtrip (correct pw true, wrong false); `signSession`→`verifySession` returns payload; tampered/expired token → null; `requireOwner` throws/false for staff.
 - [ ] Run: `node --test tests/auth.test.js` → FAIL.
@@ -91,6 +91,9 @@ export async function requireSession(req) {
 }
 export function requireOwner(session) {
   return session && session.role === 'owner'
+}
+export function requireEditor(session) {
+  return session && (session.role === 'owner' || session.role === 'staff')
 }
 // CSRF defense-in-depth: same-origin check for mutations.
 export function checkOrigin(req) {
@@ -150,7 +153,7 @@ export function checkOrigin(req) {
 
 **Files:** Modify `api/admin/products/index.js`, `api/admin/products/[id].js`; Modify `api/_lib/http.js` (drop/replace `requireAdmin`).
 
-- [ ] Replace `requireAdmin(req)` (APP_TARGET + `x-admin-secret`) with: `APP_TARGET` 404 gate (keep) + `requireSession(req)` + `checkOrigin`. Any authenticated staff may write.
+- [ ] Replace `requireAdmin(req)` (APP_TARGET + `x-admin-secret`) with: `APP_TARGET` 404 gate (keep) + `requireSession(req)` + `requireEditor(session)` (viewer → 403) + `checkOrigin`. Reads stay open to any session.
 - [ ] Remove `x-admin-secret` reliance.
 - [ ] Update `tests/http.test.js` accordingly (or move auth-gate tests to `auth.test.js`).
 - [ ] Run `npm test` → green. Commit: `refactor: product writes require a valid session`
@@ -183,12 +186,13 @@ export function checkOrigin(req) {
 
 ## Task 9: "Kelola Staff" page + route + sidebar (owner-only)
 
-**Files:** Create `src/pages/admin/StaffPage.jsx`; Modify `src/AdminApp.jsx` (route), `src/components/admin/Sidebar.jsx` (nav item), and add `src/lib/staffApi.js`.
+**Files:** Create `src/pages/admin/StaffPage.jsx`; Modify `src/AdminApp.jsx` (route), `src/components/admin/Sidebar.jsx` (nav item), `src/pages/admin/ProductsPage.jsx` + `src/pages/admin/ProductFormPage.jsx` (viewer read-only), and add `src/lib/staffApi.js`.
 
 - [ ] `staffApi.js`: `listStaff`, `createStaff`, `updateStaff`, `deleteStaff`, `resetPassword` — all `credentials:'include'`, throw on non-2xx.
-- [ ] `StaffPage`: table (nama, jabatan, email, role) + **Tambah** (modal: nama, jabatan, email, role select owner/staff, password) + **Edit** (same modal without password) + **Hapus** (confirm) + **Reset Password** (modal: new password). Match admin theme (`adm-card`, tokens, 12px radius, floating/standard buttons). Show server error messages (e.g. "email sudah dipakai", "tidak bisa hapus owner terakhir").
+- [ ] `StaffPage`: table (nama, jabatan, email, role) + **Tambah** (modal: nama, jabatan, email, **role select: owner / staff / viewer**, password) + **Edit** (same modal without password) + **Hapus** (confirm) + **Reset Password** (modal: new password). Match admin theme (`adm-card`, tokens, 12px radius). Show server error messages (e.g. "email sudah dipakai", "tidak bisa hapus owner terakhir").
 - [ ] `AdminApp.jsx`: add `<Route path="staff" element={<StaffPage />} />` under `/admin`. Guard: if `!isOwner`, redirect to `/admin`.
 - [ ] `Sidebar.jsx`: add **Staff** item, shown only when `isOwner`.
+- [ ] **Viewer read-only**: in `ProductsPage`, hide "Tambah Produk"/Import + the edit/delete/publish row actions when `!isEditor`; in `ProductFormPage`, if `!isEditor` render fields read-only and hide the save bar (or redirect to `/admin/products`). Server already enforces (403) — this just removes dead controls.
 - [ ] Verify `npm run build:admin`. Commit: `feat: Kelola Staff (user management) page`
 
 ---

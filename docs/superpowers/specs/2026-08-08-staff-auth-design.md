@@ -6,10 +6,17 @@
 
 ## Roles
 
-- **owner** — full access: manage products **and** manage staff (add/edit/delete/reset password).
-- **staff** — manage products only. No access to user management.
+| Role | View dashboard/products | Edit products (create/update/delete/publish) | Manage staff accounts |
+|------|:--:|:--:|:--:|
+| **owner** | ✓ | ✓ | ✓ |
+| **staff** | ✓ | ✓ | ✗ |
+| **viewer** | ✓ | ✗ (read-only) | ✗ |
 
-(Two roles for v1; extendable later.)
+- **owner** — full; the only role that can add/edit/delete staff accounts.
+- **staff** — manage products; cannot touch staff accounts.
+- **viewer** — read-only; can see everything but change nothing.
+
+(Extendable later; today the only permissioned resources are products + staff.)
 
 ## Data model (Neon)
 
@@ -21,7 +28,7 @@ create table staff (
   name           text not null,
   job            text,                      -- jabatan (deskriptif, mis. "Admin Gudang")
   email          text unique not null,      -- stored lower-cased
-  role           text not null default 'staff' check (role in ('owner','staff')),
+  role           text not null default 'staff' check (role in ('owner','staff','viewer')),
   password_hash  text not null,             -- bcrypt hash, never plaintext
   failed_attempts int not null default 0,   -- brute-force lockout
   locked_until   timestamptz,
@@ -74,13 +81,17 @@ create table staff (
 ## Authorization helpers
 
 - `requireSession(req)` → `{ user }` or 401 (verifies cookie).
-- `requireOwner(req)` → 403 unless `user.role === 'owner'`.
-- Product write endpoints: `requireSession`. User-management endpoints: `requireOwner`.
+- `requireEditor(user)` → false unless role is `owner` or `staff` (blocks `viewer`).
+- `requireOwner(user)` → false unless `user.role === 'owner'`.
+- **Product reads** (dashboard/list): any authenticated session (incl. viewer).
+- **Product writes** (create/update/delete): `requireSession` + `requireEditor` (viewer → 403).
+- **User management**: `requireSession` + `requireOwner` (staff/viewer → 403).
 - Keep the `APP_TARGET==='admin'` gate (404 on the storefront deployment) as an extra layer.
 
 ## Frontend (admin app)
 
-- **AuthContext** rewritten: `login()` → `POST /api/admin/login` (with `credentials: 'include'`); on mount → `GET /api/admin/me` to restore the session; `logout()` → `POST /api/admin/logout`. `currentUser`, `isOwner = role === 'owner'`. No password logic in the client.
+- **AuthContext** rewritten: `login()` → `POST /api/admin/login` (with `credentials: 'include'`); on mount → `GET /api/admin/me` to restore the session; `logout()` → `POST /api/admin/logout`. Exposes `currentUser`, `isOwner = role === 'owner'`, `isEditor = role !== 'viewer'`. No password logic in the client.
+- **Viewer (read-only) UI**: when `!isEditor`, hide product write controls (Tambah Produk, edit/delete/publish, the form's save buttons — or open the form read-only). The server still enforces (defense-in-depth); the UI just avoids dead buttons.
 - **adminApi**: every call uses `credentials: 'include'` (sends the cookie); drop the `x-admin-secret` header.
 - **New page — "Kelola Staff"** (`/admin/staff`, owner only): table of staff + **Add** (modal: nama, jabatan, email, role, password) + **Edit** + **Delete** + **Reset password**. Route + sidebar item hidden/guarded for non-owners.
 - **Sidebar**: add a "Staff" item, shown only when `isOwner`.
