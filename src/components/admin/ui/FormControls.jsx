@@ -1,4 +1,5 @@
-import { ArrowRight } from '@phosphor-icons/react'
+import { ArrowRight, CaretDown, Check } from '@phosphor-icons/react'
+import Dropdown from './Dropdown'
 
 // Figma-exact admin form controls (Button & Forms Components frame).
 // Pill buttons/inputs, blue checkbox/switch, label + hint + focus/error states.
@@ -76,20 +77,61 @@ export function AdminTextarea({ error, className = '', ...props }) {
   )
 }
 
-export function AdminSelect({ error, className = '', children, ...props }) {
-  const border = error
-    ? 'border-[var(--adm-danger)]'
-    : 'border-[var(--adm-border)] focus:border-[var(--adm-info)]'
+// Custom listbox — replaces the native <select>, whose OS-rendered options
+// popup can't be styled to match the rest of the admin UI. Same trigger +
+// adm-card popup pattern as every other dropdown (Kategori filter, row "...").
+// `pill` picks the trigger shape: rounded-full (matches AdminInput, used in
+// Staff forms) or rounded-xl/"boxy" (matches ProductFormPage's inputs).
+export function AdminSelect({ value, onChange, options, placeholder = 'Pilih', error, pill = true, className = '' }) {
+  const opts = options.map((o) => ({
+    value: o?.value ?? o,
+    label: o?.label ?? o,
+  }))
+  const selected = opts.find((o) => o.value === value)
+  const border = error ? 'border-[var(--adm-danger)]' : 'border-[var(--adm-border)]'
+
   return (
-    <div className="relative">
-      <select
-        className={`w-full appearance-none rounded-[100px] border bg-white px-4 py-3 pr-10 text-[15px] text-black focus:outline-none transition-colors ${border} ${className}`}
-        {...props}
-      >
-        {children}
-      </select>
-      <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[var(--adm-muted)]">▾</span>
-    </div>
+    <Dropdown
+      className={`w-full ${className}`}
+      matchTriggerWidth
+      trigger={(toggle, open) => (
+        <button
+          type="button"
+          onClick={toggle}
+          className={`flex w-full items-center justify-between gap-2 border bg-white text-left outline-none transition-colors ${
+            pill ? 'rounded-[100px] px-4 py-3 text-[15px]' : 'rounded-xl px-4 py-2.5 text-[14px]'
+          } ${open ? 'border-[var(--adm-forest-500)]' : border}`}
+        >
+          <span className={`truncate ${selected ? 'text-[var(--adm-ink)]' : 'text-[var(--adm-muted)]'}`}>
+            {selected ? selected.label : placeholder}
+          </span>
+          <CaretDown
+            size={16}
+            className={`shrink-0 text-[var(--adm-muted)] transition-transform duration-150 ${open ? 'rotate-180' : ''}`}
+          />
+        </button>
+      )}
+      panel={(close) => (
+        <div className="adm-card max-h-64 w-full overflow-y-auto p-1.5">
+          {opts.map((o) => (
+            <button
+              key={o.value}
+              type="button"
+              onClick={() => {
+                onChange(o.value)
+                close()
+              }}
+              className={`flex w-full items-center justify-between gap-2 rounded-xl px-3 py-2 text-left text-[14px] hover:bg-[var(--adm-bg)] ${
+                o.value === value ? 'font-medium text-[var(--adm-ink)]' : 'text-[var(--adm-text)]'
+              }`}
+            >
+              <span className="truncate">{o.label}</span>
+              {o.value === value && <Check size={16} weight="bold" className="shrink-0 text-[var(--adm-info)]" />}
+            </button>
+          ))}
+        </div>
+      )}
+    />
   )
 }
 

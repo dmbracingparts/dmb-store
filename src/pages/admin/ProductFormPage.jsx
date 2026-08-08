@@ -1,12 +1,13 @@
 import { useState, useRef } from 'react'
 import { useNavigate, useParams, Link, Navigate } from 'react-router-dom'
 import {
-  X, CaretDown, ShoppingCart, Package, Plus,
+  X, ShoppingCart, Package, Plus,
 } from '@phosphor-icons/react'
 import { useAuth } from '../../context/AuthContext'
 import { useStore } from '../../store/StoreProvider'
 import { formatCurrency } from '../../utils/formatCurrency'
 import { useToast } from '../../components/admin/ui/Toast'
+import { AdminSelect } from '../../components/admin/ui/FormControls'
 
 const BRANDS = ['NHK', 'GS Astra', 'RCB', 'Shell', 'IRC', 'NGK', 'Osram', 'TDR', 'Yamalube', 'Rossi', 'Honda Genuine', 'Daytona', 'Acerbis', 'AHM', 'Corsa', 'Yamaha Genuine', 'FDR']
 
@@ -24,24 +25,6 @@ function Input({ value, onChange, placeholder, className = '' }) {
       onChange={onChange}
       placeholder={placeholder}
     />
-  )
-}
-
-function Select({ value, onChange, options, placeholder }) {
-  return (
-    <div className="relative">
-      <select
-        className="w-full appearance-none rounded-xl border border-[var(--adm-border)] bg-white px-4 py-2.5 text-[14px] text-[var(--adm-ink)] outline-none focus:border-[var(--adm-forest-500)]"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-      >
-        <option value="" disabled>{placeholder}</option>
-        {options.map((o) => (
-          <option key={o.value ?? o} value={o.value ?? o}>{o.label ?? o}</option>
-        ))}
-      </select>
-      <CaretDown size={16} className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[var(--adm-muted)]" />
-    </div>
   )
 }
 
@@ -186,11 +169,11 @@ function ProductFormPageInner() {
             </div>
             <div>
               <FieldLabel>Kategori</FieldLabel>
-              <Select value={category} onChange={setCategory} options={catOptions} placeholder="Pilih kategori" />
+              <AdminSelect pill={false} value={category} onChange={setCategory} options={catOptions} placeholder="Pilih kategori" />
             </div>
             <div>
               <FieldLabel>Brand</FieldLabel>
-              <Select value={brand} onChange={setBrand} options={BRANDS} placeholder="Pilih brand" />
+              <AdminSelect pill={false} value={brand} onChange={setBrand} options={BRANDS} placeholder="Pilih brand" />
             </div>
             <div>
               <FieldLabel>Kompatibel Dengan</FieldLabel>

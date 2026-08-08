@@ -2,8 +2,12 @@ import { useEffect, useRef, useState } from 'react'
 
 // Generic click-to-toggle dropdown: renders `trigger` and, when open, `panel`
 // positioned below it. Closes on outside click or Escape. Used for the
-// Categories/Filter checkbox menus and per-row "..." action menus.
-export default function Dropdown({ trigger, panel, align = 'left', className = '' }) {
+// Categories/Filter checkbox menus, per-row "..." action menus, and the
+// custom select listbox (AdminSelect).
+// `matchTriggerWidth` pins both edges (left-0 right-0) instead of shrink-
+// to-fit, so a `w-full` panel child stretches to exactly the trigger's width
+// — used by AdminSelect so its popup reads as one control with the trigger.
+export default function Dropdown({ trigger, panel, align = 'left', matchTriggerWidth = false, className = '' }) {
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
 
@@ -26,7 +30,9 @@ export default function Dropdown({ trigger, panel, align = 'left', className = '
       {trigger(() => setOpen((v) => !v), open)}
       {open && (
         <div
-          className={`adm-panel-in absolute z-20 mt-2 ${align === 'right' ? 'right-0 origin-top-right' : 'left-0 origin-top-left'}`}
+          className={`adm-panel-in absolute z-20 mt-2 ${
+            matchTriggerWidth ? 'left-0 right-0' : align === 'right' ? 'right-0 origin-top-right' : 'left-0 origin-top-left'
+          }`}
         >
           {panel(() => setOpen(false))}
         </div>

@@ -85,11 +85,7 @@ function StaffFormModal({ isNew, initial, onClose, onSaved }) {
           <AdminInput type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="nama@email.com" required />
         </Field>
         <Field label="Role" required>
-          <AdminSelect value={role} onChange={(e) => setRole(e.target.value)}>
-            {ROLES.map((r) => (
-              <option key={r.value} value={r.value}>{r.label}</option>
-            ))}
-          </AdminSelect>
+          <AdminSelect value={role} onChange={setRole} options={ROLES} placeholder="Pilih role" />
         </Field>
         {isNew && (
           <Field label="Password" required hint="Minimal 8 karakter">
