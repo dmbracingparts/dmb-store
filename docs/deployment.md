@@ -19,7 +19,7 @@ Catalog-only storefront + product CMS admin. **One repo → two Vercel projects*
 ```
 
 - The admin bundle is **structurally excluded** from the storefront build (the `@app` alias resolves to exactly one app). Verified: zero admin code/strings in the storefront bundle.
-- Admin write endpoints (`/api/admin/*`) are gated by `APP_TARGET=admin` **and** an `x-admin-secret` header — so even though both deployments ship the same `/api` folder, writes only work on the protected admin deployment.
+- Admin auth is **server-side**: per-staff accounts in the `staff` table (bcrypt-hashed passwords), login issues an HttpOnly + Secure + SameSite=Strict session cookie (JWT signed with `SESSION_SECRET`). Write endpoints (`/api/admin/*`) require a valid session with an editor role (owner/staff); user-management endpoints require owner. Passwords never reach the browser. Gated additionally by `APP_TARGET=admin` (404 on the storefront deployment).
 
 ## Environment variables
 
@@ -35,14 +35,15 @@ Build Command: `npm run build` (default).
 |-----|-------|-------|
 | `DATABASE_URL` | Neon connection string — **read-write role** | Server-only. |
 | `APP_TARGET` | `admin` | Runtime flag; enables the write endpoints. Required. |
-| `ADMIN_API_SECRET` | a long random secret | Write endpoints require header `x-admin-secret` == this. |
-| `VITE_ADMIN_SECRET` | **same value** as `ADMIN_API_SECRET` | The admin client sends it as the header. |
-| `VITE_ADMIN_EMAIL` | admin login email | The admin account is provisioned from this (not seeded). |
-| `VITE_ADMIN_PASSWORD` | admin login password | Without these two, the prod admin build has **no** login. |
+| `SESSION_SECRET` | a long random string | Signs the session JWT. Server-only. Rotating it logs everyone out. |
+| `OWNER_EMAIL` | first owner's login email | Used **once** by `db/seed-staff.mjs` to create the first owner. |
+| `OWNER_PASSWORD` | first owner's login password | Used **once** by the seed. Change/reset it from the dashboard later. |
 
 Build Command: `npm run build:admin`.
 
-> Note: `VITE_*` vars are compiled into the client bundle. That's acceptable here because the admin bundle is served only from the protected admin deployment. `DATABASE_URL`, `APP_TARGET`, `ADMIN_API_SECRET` are **not** `VITE_`-prefixed and never reach the browser.
+**After first deploy, seed the first owner once:** `node --env-file=<env-with-DATABASE_URL+OWNER_*> db/seed-staff.mjs` (or run it locally against the production `DATABASE_URL`). This creates the migration + one owner account; then log in and add the rest via **Kelola Staff**.
+
+> No admin credentials are `VITE_`-prefixed anymore — passwords are bcrypt-hashed in the DB and never compiled into the client bundle. (The old `VITE_ADMIN_EMAIL/PASSWORD/SECRET` and `ADMIN_API_SECRET` are removed.)
 
 ### Neon roles (recommended hardening)
 Create two Postgres roles in Neon: a read-write role (admin) and a read-only role (`GRANT SELECT` only, storefront). Point each project's `DATABASE_URL` at the matching role. This is the plan's defense-in-depth; a single owner-role string works but is less safe.
@@ -52,13 +53,14 @@ Create two Postgres roles in Neon: a read-write role (admin) and a read-only rol
 1. Create `.env.local` (gitignored) at the repo root:
    ```
    DATABASE_URL="postgresql://…neon…/neondb?sslmode=require"
-   ADMIN_API_SECRET=devsecret
-   VITE_ADMIN_SECRET=devsecret
+   SESSION_SECRET=dev-session-secret-long-random
+   OWNER_EMAIL=owner@dmb.com
+   OWNER_PASSWORD=owner12345
    ```
-   (Local admin login falls back to `admin@dmb.com` / `admin123` in dev; set `VITE_ADMIN_EMAIL` / `VITE_ADMIN_PASSWORD` to override.)
 2. Seed the database (one time, or to reset):
    ```
-   node --env-file=.env.local db/seed.mjs
+   node --env-file=.env.local db/seed.mjs        # products + categories
+   node --env-file=.env.local db/seed-staff.mjs  # staff table + first owner
    ```
 3. Run:
    - Storefront: `npm run dev` → http://localhost:5173
