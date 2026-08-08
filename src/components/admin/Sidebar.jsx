@@ -66,7 +66,7 @@ export default function Sidebar() {
         {MENU.map((m) => (
           <Item key={m.to} {...m} />
         ))}
-        {isAdministrator && <Item to="/admin/staff" label="Staff" Icon={UsersThree} />}
+        {isAdministrator && <Item to="/admin/staff" label="User" Icon={UsersThree} />}
       </nav>
 
       {/* Footer */}

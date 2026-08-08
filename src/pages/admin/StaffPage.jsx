@@ -71,7 +71,7 @@ function StaffFormModal({ isNew, initial, onClose, onSaved }) {
   }
 
   return (
-    <ModalShell title={isNew ? 'Tambah Staff' : 'Edit Staff'} onClose={onClose}>
+    <ModalShell title={isNew ? 'Tambah User' : 'Edit User'} onClose={onClose}>
       <form onSubmit={submit} className="flex flex-col gap-4">
         <Field label="Nama" required>
           <AdminInput value={name} onChange={(e) => setName(e.target.value)} placeholder="Nama lengkap" required />
@@ -186,16 +186,16 @@ function StaffPageInner() {
     <div className="mx-auto flex max-w-[1240px] flex-col gap-4 p-4 lg:p-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-[24px] font-semibold tracking-tight text-[var(--adm-ink)]">Kelola Staff</h1>
+          <h1 className="text-[24px] font-semibold tracking-tight text-[var(--adm-ink)]">Kelola User</h1>
           <p className="mt-1 text-[14px] text-[var(--adm-muted)]">Atur akun & akses tim yang mengelola toko kamu.</p>
         </div>
         <AdminButton onClick={() => setFormModal({ isNew: true, initial: null })}>
-          <Plus size={18} weight="bold" /> Tambah Staff
+          <Plus size={18} weight="bold" /> Tambah User
         </AdminButton>
       </div>
 
       <div className="adm-tile flex flex-col gap-5 p-5">
-        <p className="text-[15px] font-semibold text-[var(--adm-ink)]">Semua Staff</p>
+        <p className="text-[15px] font-semibold text-[var(--adm-ink)]">Semua User</p>
 
         <div className="overflow-x-auto">
           <table className="w-full min-w-[720px] text-left">
@@ -221,7 +221,7 @@ function StaffPageInner() {
               )}
               {!loading && !loadError && staff.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="py-10 text-center text-[var(--adm-muted)]">Belum ada staff.</td>
+                  <td colSpan={5} className="py-10 text-center text-[var(--adm-muted)]">Belum ada user.</td>
                 </tr>
               )}
               {!loading && !loadError && staff.map((s) => (
@@ -299,7 +299,7 @@ function StaffPageInner() {
               </button>
             </div>
             <div className="px-6 pb-6 pt-4">
-              <h2 className="text-[18px] font-medium text-black">Hapus Staff</h2>
+              <h2 className="text-[18px] font-medium text-black">Hapus User</h2>
               <p className="mt-2 text-[14px] text-[var(--adm-muted)]">
                 Tindakan ini tidak bisa dibatalkan. Yakin mau hapus "{confirmDel.name}"?
               </p>
