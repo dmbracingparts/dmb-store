@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import Nav from '../components/layout/Nav'
 import Footer from '../components/layout/Footer'
 import ProductCard from '../components/ui/ProductCard'
+import { ProductGridSkeleton } from '../components/ui/ProductCardSkeleton'
 import Button from '../components/ui/Button'
 import HeroAssemblySection from '../components/home/HeroAssemblySection'
 import HowItWorksSection from '../components/home/HowItWorksSection'
@@ -123,15 +124,13 @@ export default function HomePage() {
               Kurasi sparepart original terlaris — siap kirim, cocok untuk motor harian maupun modifikasi.
             </p>
           </div>
-          {loading ? (
-            <p className="py-12 text-center text-neutral-600">Memuat produk…</p>
-          ) : (
-            <div className="grid grid-cols-2 gap-x-4 gap-y-8 lg:grid-cols-4 lg:gap-x-6">
-              {featured.map((p) => (
-                <ProductCard key={p.id} product={p} />
-              ))}
-            </div>
-          )}
+          <div className="grid grid-cols-2 gap-x-4 gap-y-8 lg:grid-cols-4 lg:gap-x-6">
+            {loading ? (
+              <ProductGridSkeleton count={4} />
+            ) : (
+              featured.map((p) => <ProductCard key={p.id} product={p} />)
+            )}
+          </div>
           <div className="mt-14 flex justify-center">
             <Link to="/search">
               <Button variant="primary" size="lg">Lihat Semua Produk</Button>

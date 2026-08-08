@@ -32,7 +32,21 @@ export default function ProductDetailPage() {
     return (
       <div>
         <Nav />
-        <p className="py-24 text-center text-neutral-600">Memuat…</p>
+        <section className="flex animate-pulse flex-col gap-8 px-4 py-6 motion-reduce:animate-none lg:flex-row lg:gap-10 lg:px-16 lg:py-10">
+          <div className="aspect-square w-full rounded-md bg-neutral-100 lg:w-3/5" />
+          <div className="flex flex-col gap-5 lg:w-2/5">
+            <div className="h-3 w-40 rounded bg-neutral-100" />
+            <div className="border-t border-neutral-100" />
+            <div className="h-8 w-3/4 rounded bg-neutral-100" />
+            <div className="h-7 w-32 rounded bg-neutral-100" />
+            <div className="flex flex-col gap-2">
+              <div className="h-4 w-full rounded bg-neutral-100" />
+              <div className="h-4 w-5/6 rounded bg-neutral-100" />
+              <div className="h-4 w-2/3 rounded bg-neutral-100" />
+            </div>
+            <div className="h-12 w-full rounded-md bg-neutral-100" />
+          </div>
+        </section>
         <Footer />
       </div>
     )

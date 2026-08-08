@@ -2,7 +2,12 @@ function slugify(s) {
   return String(s).toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
 }
 
-export function shapeProduct(row, images = [], compat = []) {
+// Reads fetch images/compat as aggregated json arrays on the product row, so a
+// listing is one DB round trip instead of three. The neon HTTP driver parses
+// json columns to JS arrays, but guard for a string just in case.
+const toArray = (v) => (Array.isArray(v) ? v : typeof v === 'string' && v ? JSON.parse(v) : [])
+
+export function shapeProduct(row) {
   return {
     id: row.id,
     sku: row.sku,
@@ -16,8 +21,8 @@ export function shapeProduct(row, images = [], compat = []) {
     published: row.published,
     isFeatured: row.is_featured,
     featuredOrder: row.featured_order,
-    images: images.map((i) => i.url),
-    compatibleWith: compat.map((c) => c.model),
+    images: toArray(row.images),
+    compatibleWith: toArray(row.compat),
   }
 }
 
@@ -50,37 +55,32 @@ export function validateProductInput(data) {
   return { ok: true, value }
 }
 
-async function loadChildren(sql, ids) {
-  if (ids.length === 0) return { images: {}, compat: {} }
-  const imgs = await sql`select product_id, url from product_images
-    where product_id = any(${ids}) order by position`
-  const compat = await sql`select product_id, model from product_compatibility
-    where product_id = any(${ids})`
-  const byProduct = (rows) => rows.reduce((acc, r) => {
-    (acc[r.product_id] ||= []).push(r)
-    return acc
-  }, {})
-  return { images: byProduct(imgs), compat: byProduct(compat) }
-}
-
 export async function listProducts(sql, { publishedOnly = false, category, q, featured } = {}) {
   const rows = await sql`
-    select * from products
-    where (${!publishedOnly} or published = true)
-      and (${category ?? null}::text is null or category_id = ${category ?? null})
-      and (${q ?? null}::text is null or name ilike ${'%' + (q ?? '') + '%'})
-      and (${featured ?? null}::bool is null or is_featured = ${featured ?? null})
-    order by coalesce(featured_order, 999999), created_at desc`
-  const ids = rows.map((r) => r.id)
-  const { images, compat } = await loadChildren(sql, ids)
-  return rows.map((r) => shapeProduct(r, images[r.id] || [], compat[r.id] || []))
+    select p.*,
+      coalesce((select json_agg(i.url order by i.position)
+                from product_images i where i.product_id = p.id), '[]'::json) as images,
+      coalesce((select json_agg(c.model)
+                from product_compatibility c where c.product_id = p.id), '[]'::json) as compat
+    from products p
+    where (${!publishedOnly} or p.published = true)
+      and (${category ?? null}::text is null or p.category_id = ${category ?? null})
+      and (${q ?? null}::text is null or p.name ilike ${'%' + (q ?? '') + '%'})
+      and (${featured ?? null}::bool is null or p.is_featured = ${featured ?? null})
+    order by coalesce(p.featured_order, 999999), p.created_at desc`
+  return rows.map(shapeProduct)
 }
 
 export async function getProduct(sql, id) {
-  const rows = await sql`select * from products where id = ${id}`
+  const rows = await sql`
+    select p.*,
+      coalesce((select json_agg(i.url order by i.position)
+                from product_images i where i.product_id = p.id), '[]'::json) as images,
+      coalesce((select json_agg(c.model)
+                from product_compatibility c where c.product_id = p.id), '[]'::json) as compat
+    from products p where p.id = ${id}`
   if (rows.length === 0) return null
-  const { images, compat } = await loadChildren(sql, [id])
-  return shapeProduct(rows[0], images[id] || [], compat[id] || [])
+  return shapeProduct(rows[0])
 }
 
 // Build the child-row replacement as an array of statements so they run in a

@@ -4,6 +4,7 @@ import Nav from '../components/layout/Nav'
 import Footer from '../components/layout/Footer'
 import CategoryChip from '../components/ui/CategoryChip'
 import ProductCard from '../components/ui/ProductCard'
+import { ProductGridSkeleton } from '../components/ui/ProductCardSkeleton'
 import EmptyState from '../components/ui/EmptyState'
 import Select from '../components/ui/Select'
 import { useProducts, useCategories } from '../store/hooks'
@@ -138,7 +139,9 @@ export default function SearchPage() {
 
       <section className="px-4 pb-16 lg:px-16">
         {loading ? (
-          <p className="py-12 text-center text-neutral-600">Memuat…</p>
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+            <ProductGridSkeleton count={8} />
+          </div>
         ) : results.length === 0 ? (
           <EmptyState
             title="Produk tidak ditemukan"
