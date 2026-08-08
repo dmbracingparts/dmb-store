@@ -20,7 +20,7 @@ export default defineConfig(({ mode }) => {
   // the client — only VITE_-prefixed vars do.
   const env = loadEnv(mode, process.cwd(), '')
   if (env.DATABASE_URL) process.env.DATABASE_URL = env.DATABASE_URL
-  if (env.ADMIN_API_SECRET) process.env.ADMIN_API_SECRET = env.ADMIN_API_SECRET
+  if (env.SESSION_SECRET) process.env.SESSION_SECRET = env.SESSION_SECRET
   // The admin dev server (dev:admin) enables the write endpoints locally.
   process.env.APP_TARGET = target === 'admin' ? 'admin' : env.APP_TARGET || ''
 

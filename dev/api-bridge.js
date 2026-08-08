@@ -8,6 +8,13 @@ const ROUTES = [
   { re: /^\/api\/categories\/?$/, file: '/api/categories/index.js' },
   { re: /^\/api\/admin\/products\/([^/]+)\/?$/, file: '/api/admin/products/[id].js', param: 'id' },
   { re: /^\/api\/admin\/products\/?$/, file: '/api/admin/products/index.js' },
+  { re: /^\/api\/admin\/login\/?$/, file: '/api/admin/login.js' },
+  { re: /^\/api\/admin\/logout\/?$/, file: '/api/admin/logout.js' },
+  { re: /^\/api\/admin\/me\/?$/, file: '/api/admin/me.js' },
+  { re: /^\/api\/admin\/change-password\/?$/, file: '/api/admin/change-password.js' },
+  { re: /^\/api\/admin\/users\/([^/]+)\/reset-password\/?$/, file: '/api/admin/users/[id]/reset-password.js', param: 'id' },
+  { re: /^\/api\/admin\/users\/([^/]+)\/?$/, file: '/api/admin/users/[id].js', param: 'id' },
+  { re: /^\/api\/admin\/users\/?$/, file: '/api/admin/users/index.js' },
 ]
 
 export function apiBridge() {

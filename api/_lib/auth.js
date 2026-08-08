@@ -42,11 +42,14 @@ export function readSessionCookie(req) {
     return null
   }
 }
+// Secure is required in production (HTTPS) but breaks cookies on http://localhost
+// during dev, so it's omitted when not production. HttpOnly + SameSite=Strict stay.
+const SECURE = () => (process.env.NODE_ENV === 'production' ? ' Secure;' : '')
 export function setSessionCookie(res, token) {
-  res.setHeader('set-cookie', `${COOKIE}=${encodeURIComponent(token)}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=${MAX_AGE}`)
+  res.setHeader('set-cookie', `${COOKIE}=${encodeURIComponent(token)}; HttpOnly;${SECURE()} SameSite=Strict; Path=/; Max-Age=${MAX_AGE}`)
 }
 export function clearSessionCookie(res) {
-  res.setHeader('set-cookie', `${COOKIE}=; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=0`)
+  res.setHeader('set-cookie', `${COOKIE}=; HttpOnly;${SECURE()} SameSite=Strict; Path=/; Max-Age=0`)
 }
 export async function requireSession(req) {
   const session = await verifySession(readSessionCookie(req))
