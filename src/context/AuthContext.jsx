@@ -16,7 +16,7 @@ const GOOGLE_USER = {
 }
 
 export function AuthProvider({ children }) {
-  const { users: storeUsers, addUser } = useStore()
+  const { users: storeUsers, addUser, loadCatalog } = useStore()
   const [currentUser, setCurrentUser] = useState(null)
   const [loading, setLoading] = useState(IS_ADMIN)
   const [storefrontUserId, setStorefrontUserId] = useState(() => (!IS_ADMIN ? localStorage.getItem('dmb:auth') : null))
@@ -30,6 +30,14 @@ export function AuthProvider({ children }) {
       .catch(() => setCurrentUser(null))
       .finally(() => setLoading(false))
   }, [])
+
+  // Admin: the catalog endpoints are session-gated, so load them only once a
+  // session exists — both after a restore from /api/admin/me and after a fresh
+  // sign-in. Keyed on the id so switching accounts refetches.
+  useEffect(() => {
+    if (!IS_ADMIN || !currentUser) return
+    loadCatalog()
+  }, [currentUser?.id, loadCatalog])
 
   // Storefront: persist the customer id locally.
   useEffect(() => {

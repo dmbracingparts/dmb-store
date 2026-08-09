@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useState } from 'react'
 import { loadData, saveData, clearData } from './seed'
 import { generateOrderNumber } from '../utils/orderNumber'
 import { adminListProducts, adminCreateProduct, adminUpdateProduct, adminDeleteProduct } from '../lib/adminApi'
@@ -10,19 +10,25 @@ const StoreContext = createContext(null)
 
 export function StoreProvider({ children }) {
   const [data, setData] = useState(() => loadData())
-  // Only the admin build fetches products/categories from the API on mount;
-  // pages read this to show skeletons instead of an empty catalog flash.
+  // Only the admin build fetches products/categories from the API; pages read
+  // this to show skeletons instead of an empty catalog flash.
   const [catalogLoading, setCatalogLoading] = useState(IS_ADMIN)
 
   useEffect(() => {
     saveData(data)
   }, [data])
 
-  // Admin build: load real products/categories from the API on mount so
-  // admin edits persist to the Neon database (see src/lib/adminApi.js).
-  useEffect(() => {
-    if (!IS_ADMIN) return
-    Promise.all([adminListProducts(), fetchCategories()])
+  // Admin build: load real products/categories from the API so admin edits
+  // persist to the Neon database (see src/lib/adminApi.js).
+  //
+  // Called by AuthProvider once a session exists — NOT on mount. /api/admin/products
+  // is session-gated, so fetching on mount 401s for anyone who arrives via the
+  // login form, and nothing ever retried: the dashboard stayed at 0 products
+  // until a full page reload. Keyed on the user id there, so it also refetches
+  // when a different account signs in.
+  const loadCatalog = useCallback(() => {
+    setCatalogLoading(true)
+    return Promise.all([adminListProducts(), fetchCategories()])
       .then(([products, categories]) => setData((d) => ({ ...d, products, categories })))
       .catch((e) => console.error('admin data load failed', e))
       .finally(() => setCatalogLoading(false))
@@ -110,6 +116,7 @@ export function StoreProvider({ children }) {
     products: data.products || [],
     categories: data.categories || [],
     catalogLoading,
+    loadCatalog,
     users: data.users,
     orders: data.orders,
     promos: data.promos,
