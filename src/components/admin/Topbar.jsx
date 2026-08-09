@@ -87,7 +87,7 @@ export default function Topbar() {
     setShowLogout(false)
     setOpen(false)
     logout()
-    navigate('/')
+    navigate('/login')
   }
 
   return (

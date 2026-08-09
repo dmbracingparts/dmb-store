@@ -30,7 +30,7 @@ export default function AdminLoginPage() {
       setError(res.error)
       return
     }
-    navigate(location.state?.from || '/admin')
+    navigate(location.state?.from || '/')
   }
 
   return (

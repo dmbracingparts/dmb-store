@@ -96,7 +96,7 @@ export default function DashboardPage() {
           <div className="flex flex-wrap items-center gap-2">
             {isEditor && (
               <Link
-                to="/admin/products/new"
+                to="/products/new"
                 className="inline-flex items-center gap-2 rounded-xl bg-[var(--adm-mint)] px-4 py-2.5 text-[14px] font-semibold text-black transition-transform hover:-translate-y-0.5"
               >
                 <Plus size={18} weight="bold" /> Tambah Produk
@@ -111,7 +111,7 @@ export default function DashboardPage() {
               <ArrowSquareOut size={18} /> Lihat Storefront
             </a>
             <Link
-              to="/admin/products"
+              to="/products"
               className="inline-flex items-center gap-2 rounded-xl bg-white/10 px-4 py-2.5 text-[14px] font-medium text-white backdrop-blur transition-colors hover:bg-white/20"
             >
               <Package size={18} /> Kelola Produk
@@ -166,7 +166,7 @@ export default function DashboardPage() {
         title="Produk Terbaru"
         action={
           <Link
-            to="/admin/products"
+            to="/products"
             className="inline-flex items-center gap-1 text-[13px] font-medium text-[var(--adm-info)] hover:underline"
           >
             Lihat semua <ArrowRight size={14} />
@@ -184,7 +184,7 @@ export default function DashboardPage() {
             {recentProducts.map((p) => (
               <Link
                 key={p.id}
-                to={`/admin/products/${p.id}`}
+                to={`/products/${p.id}`}
                 className="flex items-center gap-3 rounded-xl p-2 transition-colors hover:bg-[var(--adm-bg)]"
               >
                 <span className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-[var(--adm-bg)]">

@@ -4,9 +4,9 @@ import { MagnifyingGlass, X, Package } from '@phosphor-icons/react'
 import { useStore } from '../../store/StoreProvider'
 
 const SHORTCUTS = [
-  { id: 's1', label: 'Dashboard', desc: 'Lihat ringkasan produk dan katalog toko.', href: '/admin' },
-  { id: 's2', label: 'Kelola Produk', desc: 'Tambah, edit, dan hapus produk dari katalog toko.', href: '/admin/products' },
-  { id: 's3', label: 'Tambah Produk Baru', desc: 'Buat listing produk baru di katalog.', href: '/admin/products/new' },
+  { id: 's1', label: 'Dashboard', desc: 'Lihat ringkasan produk dan katalog toko.', href: '/' },
+  { id: 's2', label: 'Kelola Produk', desc: 'Tambah, edit, dan hapus produk dari katalog toko.', href: '/products' },
+  { id: 's3', label: 'Tambah Produk Baru', desc: 'Buat listing produk baru di katalog.', href: '/products/new' },
 ]
 
 const TABS = ['Semua', 'Pintasan', 'Produk']
@@ -123,7 +123,7 @@ export default function SearchModal({ onClose }) {
               <div className="mx-5 mb-2 border-t border-[var(--adm-border)]" />
               <p className="px-5 pb-2 text-[12px] font-semibold uppercase tracking-wider text-[var(--adm-muted)]">Produk</p>
               {filteredProducts.map((p) => (
-                <button key={p.id} onClick={() => go(`/admin/products/${p.id}`)} className="flex w-full items-center gap-3 px-5 py-3 text-left transition-colors hover:bg-[var(--adm-bg)]">
+                <button key={p.id} onClick={() => go(`/products/${p.id}`)} className="flex w-full items-center gap-3 px-5 py-3 text-left transition-colors hover:bg-[var(--adm-bg)]">
                   <span className="flex size-6 shrink-0 items-center justify-center text-[var(--adm-muted)]"><Package size={16} /></span>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-[14px] font-medium text-black">{highlight(p.name, query)}</p>
@@ -138,7 +138,7 @@ export default function SearchModal({ onClose }) {
 
         {/* Footer */}
         <div className="border-t border-[var(--adm-border)]">
-          <button onClick={() => go('/admin/products')} className="w-full py-4 text-[14px] font-medium text-black hover:bg-[var(--adm-bg)]">
+          <button onClick={() => go('/products')} className="w-full py-4 text-[14px] font-medium text-black hover:bg-[var(--adm-bg)]">
             Lihat semua
           </button>
         </div>

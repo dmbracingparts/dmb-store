@@ -45,8 +45,8 @@ function Item({ to, label, Icon, end }) {
 }
 
 const MENU = [
-  { to: '/admin', label: 'Dashboard', Icon: SquaresFour, end: true },
-  { to: '/admin/products', label: 'Produk', Icon: Package },
+  { to: '/', label: 'Dashboard', Icon: SquaresFour, end: true },
+  { to: '/products', label: 'Produk', Icon: Package },
 ]
 
 export default function Sidebar() {
@@ -64,7 +64,7 @@ export default function Sidebar() {
         {MENU.map((m) => (
           <Item key={m.to} {...m} />
         ))}
-        {isAdministrator && <Item to="/admin/staff" label="User" Icon={UsersThree} />}
+        {isAdministrator && <Item to="/staff" label="User" Icon={UsersThree} />}
       </nav>
 
       {/* Storefront promo banner */}

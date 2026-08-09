@@ -30,7 +30,17 @@ Neon Postgres database:
 | Vercel project | Build command | Serves |
 |---|---|---|
 | `dmb-store` | `npm run build` | storefront (public domain) |
-| `dmb-admin` | `npm run build:admin` | admin (secret slug + should be behind Deployment Protection) |
+| `dmb-admin` | `npm run build:admin` | admin (should be behind Deployment Protection) |
+
+Admin **page** routes sit at the **root** of the admin deployment — `/`
+(dashboard), `/login`, `/products`, `/products/new`, `/products/:id`, `/staff`.
+It has its own subdomain, so an `/admin` URL prefix would only say "admin"
+twice. Unmatched paths redirect to `/`, which also catches bookmarks of the old
+`/admin/*` URLs. This is unrelated to the **API** paths, which stay
+`/api/admin/*` — those are serverless file locations, not user-facing URLs.
+There is deliberately **no secret login slug**: the old one shipped in the
+client bundle and the logged-out redirect pointed straight at it, so it
+protected nothing. Deployment Protection is the real gate.
 
 ## 2. Backend: Vercel functions + Neon
 
@@ -141,4 +151,5 @@ node --env-file=.env.local db/seed-staff.mjs
 - `STORE_WHATSAPP` is still the placeholder number.
 - Storefront `DATABASE_URL` could use a **read-only Neon role** (defense in
   depth — it only ever reads).
-- Enable Deployment Protection on the admin project.
+- Enable Deployment Protection on the admin project. Now that the login slug is
+  gone, this is the only thing keeping the sign-in form off the open internet.

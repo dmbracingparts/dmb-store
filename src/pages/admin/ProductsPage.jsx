@@ -141,7 +141,7 @@ export default function ProductsPage() {
             <AdminButton variant="secondary" onClick={() => setShowImport(true)}>
               <DownloadSimple size={18} /> Import
             </AdminButton>
-            <AdminButton onClick={() => navigate('/admin/products/new')}>
+            <AdminButton onClick={() => navigate('/products/new')}>
               <Plus size={18} weight="bold" /> Tambah Produk
             </AdminButton>
           </div>
@@ -279,7 +279,7 @@ export default function ProductsPage() {
                   <td className="py-3 pr-5">
                     {isEditor ? (
                       <div className="flex items-center gap-1">
-                        <button onClick={() => navigate(`/admin/products/${p.id}`)} className={iconBtn} aria-label="Edit">
+                        <button onClick={() => navigate(`/products/${p.id}`)} className={iconBtn} aria-label="Edit">
                           <PencilSimple size={18} />
                         </button>
                         <button onClick={() => setConfirmDel(p)} className={iconBtn} aria-label="Hapus">

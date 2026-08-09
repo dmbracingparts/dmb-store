@@ -337,6 +337,6 @@ function StaffPageInner() {
 export default function StaffPage() {
   const { isAdministrator, loading } = useAuth()
   if (loading) return null
-  if (!isAdministrator) return <Navigate to="/admin" replace />
+  if (!isAdministrator) return <Navigate to="/" replace />
   return <StaffPageInner />
 }

@@ -64,7 +64,7 @@ Create two Postgres roles in Neon: a read-write role (admin) and a read-only rol
    ```
 3. Run:
    - Storefront: `npm run dev` → http://localhost:5173
-   - Admin: `npm run dev:admin` → admin login at `/`
+   - Admin: `npm run dev:admin` → sign-in at http://localhost:5173/login
 
 A dev-only Vite bridge (`dev/api-bridge.js`) serves `/api/*` locally against Neon, so the whole stack runs without Vercel. It is `apply: 'serve'` — never part of a production build.
 
@@ -84,6 +84,7 @@ A dev-only Vite bridge (`dev/api-bridge.js`) serves `/api/*` locally against Neo
 
 ## Pre-launch checklist
 
+- [ ] Enable **Deployment Protection** on the admin project (step 3 above). The admin sign-in form is at `admin.<domain>/login` and is not hidden by anything else — the platform gate is the only thing that keeps it off the open internet.
 - [ ] Set `STORE_WHATSAPP` in `src/config/features.js` — **still the placeholder `6281234567890`**; the product-page "Hubungi" button links to `wa.me/<this>`, so leads go nowhere until it's the shop's real number.
 - [ ] Seed the first administrator via `db/seed-staff.mjs` (`OWNER_EMAIL`/`OWNER_PASSWORD`), then change that password from **Kelola User**. (Admin auth is DB-based — there are no `VITE_ADMIN_*` env vars.)
 - [ ] Use a read-only Neon role for the storefront `DATABASE_URL`.

@@ -22,11 +22,13 @@ export default function AdminApp() {
           <AuthProvider>
             <ChatProvider>
               <Routes>
-                <Route path="/" element={<AdminLoginPage />} />
-                <Route path="/admin/login" element={<Navigate to="/" replace />} />
+                <Route path="/login" element={<AdminLoginPage />} />
 
+                {/* This deployment only ever serves the admin, on its own
+                    subdomain, so the pages sit at the root — an /admin prefix
+                    here would just say "admin" twice. */}
                 <Route
-                  path="/admin"
+                  path="/"
                   element={
                     <RequireAdmin>
                       <AdminLayout />
@@ -40,8 +42,9 @@ export default function AdminApp() {
                   <Route path="staff" element={<StaffPage />} />
                 </Route>
 
-                {/* Everything else on the admin deployment funnels into /admin. */}
-                <Route path="*" element={<Navigate to="/admin" replace />} />
+                {/* Everything else funnels to the dashboard — which also
+                    catches bookmarks of the old /admin/* paths. */}
+                <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </ChatProvider>
           </AuthProvider>

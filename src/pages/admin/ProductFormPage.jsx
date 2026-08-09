@@ -97,7 +97,7 @@ function ProductFormPageInner() {
         await updateProduct(id, payload)
       }
       toast.success(asDraft ? 'Disimpan sebagai draft' : 'Produk dipublish', { description: name })
-      navigate('/admin/products')
+      navigate('/products')
     } catch (e) {
       toast.error('Gagal menyimpan produk', { description: e.message })
       setSaving(false)
@@ -114,7 +114,7 @@ function ProductFormPageInner() {
           {isNew ? 'Tambah Produk' : 'Edit Produk'}
         </h1>
         <p className="mt-1 text-[13px] text-[var(--adm-muted)]">
-          <Link to="/admin/products" className="hover:underline">Produk</Link>
+          <Link to="/products" className="hover:underline">Produk</Link>
           {' / '}
           <span>{isNew ? 'Tambah Produk' : name || 'Edit'}</span>
         </p>
@@ -315,6 +315,6 @@ function ProductFormPageInner() {
 export default function ProductFormPage() {
   const { isEditor } = useAuth()
   const { id } = useParams()
-  if (!isEditor) return <Navigate to="/admin/products" replace />
+  if (!isEditor) return <Navigate to="/products" replace />
   return <ProductFormPageInner key={id || 'new'} />
 }
