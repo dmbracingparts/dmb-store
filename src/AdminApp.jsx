@@ -1,5 +1,4 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import { ADMIN_LOGIN_SLUG } from './config/features'
 import { StoreProvider } from './store/StoreProvider'
 import { AuthProvider } from './context/AuthContext'
 import { ChatProvider } from './context/ChatContext'
@@ -23,10 +22,8 @@ export default function AdminApp() {
           <AuthProvider>
             <ChatProvider>
               <Routes>
-                {/* Sign-in behind the secret slug; the guessable /admin/login
-                    just forwards to it. */}
-                <Route path={`/admin/${ADMIN_LOGIN_SLUG}`} element={<AdminLoginPage />} />
-                <Route path="/admin/login" element={<Navigate to={`/admin/${ADMIN_LOGIN_SLUG}`} replace />} />
+                <Route path="/" element={<AdminLoginPage />} />
+                <Route path="/admin/login" element={<Navigate to="/" replace />} />
 
                 <Route
                   path="/admin"

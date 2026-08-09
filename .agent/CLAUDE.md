@@ -92,7 +92,6 @@ Neon Postgres database:
     `Navigate` home) and the corresponding nav. Flip to `false` to restore all.
   - `STORE_WHATSAPP` — the "Hubungi" CTA target. **Currently the placeholder
     `6281234567890`; set the shop's real number before launch.**
-  - `ADMIN_LOGIN_SLUG = 'masuk-dmb'` — admin sign-in at `/admin/<slug>`.
 - Storefront reads products/categories from the API via `src/lib/api.js`
   (session-lived in-memory cache) and `src/store/hooks.js` (cache-first +
   background revalidate; an error never wipes good cache).
@@ -142,5 +141,4 @@ node --env-file=.env.local db/seed-staff.mjs
 - `STORE_WHATSAPP` is still the placeholder number.
 - Storefront `DATABASE_URL` could use a **read-only Neon role** (defense in
   depth — it only ever reads).
-- Change `ADMIN_LOGIN_SLUG` from the default; enable Deployment Protection on
-  the admin project.
+- Enable Deployment Protection on the admin project.

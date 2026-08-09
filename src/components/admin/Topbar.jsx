@@ -3,7 +3,6 @@ import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 import { MagnifyingGlass, CaretDown, SignOut, X } from '@phosphor-icons/react'
 import { useAuth } from '../../context/AuthContext'
-import { ADMIN_LOGIN_SLUG } from '../../config/features'
 import SearchModal from './SearchModal'
 
 function LogoutModal({ onConfirm, onCancel }) {
@@ -88,7 +87,7 @@ export default function Topbar() {
     setShowLogout(false)
     setOpen(false)
     logout()
-    navigate(`/admin/${ADMIN_LOGIN_SLUG}`)
+    navigate('/')
   }
 
   return (
