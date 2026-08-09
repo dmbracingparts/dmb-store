@@ -9,9 +9,9 @@ export default function RequireAdmin({ children }) {
   // redirect, or a logged-in admin gets bounced to login on every refresh.
   if (loading) return null
 
-  // Logged-out visitors go to the sign-in page. The admin app runs on its own
-  // deployment behind Deployment Protection, so there's no public to hide the
-  // panel from here — the platform gate already did that.
+  // Logged-out visitors go to the sign-in page. This gate is the real one —
+  // there is no platform-level gate in front of it (see docs/deployment.md,
+  // "Why not Deployment Protection").
   if (!isLoggedIn) return <Navigate to="/login" replace />
 
   if (!isAdmin) {

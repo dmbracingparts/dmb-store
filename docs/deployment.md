@@ -12,7 +12,7 @@ Catalog-only storefront + product CMS admin. **One repo → two Vercel projects*
         │                                                       │
    Vercel Project: STOREFRONT                          Vercel Project: ADMIN
    domainmu.com — no protection                        admin.domainmu.com
-   DATABASE_URL = read-only role                       behind Deployment Protection
+   DATABASE_URL = read-only role                       staff login + noindex
         └───────────────────────┬───────────────────────────────┘
                                 ▼
                      Neon Postgres (shared)
@@ -20,6 +20,36 @@ Catalog-only storefront + product CMS admin. **One repo → two Vercel projects*
 
 - The admin bundle is **structurally excluded** from the storefront build (the `@app` alias resolves to exactly one app). Verified: zero admin code/strings in the storefront bundle.
 - Admin auth is **server-side**: per-staff accounts in the `staff` table (bcrypt-hashed passwords), login issues an HttpOnly + Secure + SameSite=Strict session cookie (JWT signed with `SESSION_SECRET`). Write endpoints (`/api/admin/*`) require a valid session with an editor role (administrator/inputer); user-management endpoints require administrator. Passwords never reach the browser. Gated additionally by `APP_TARGET=admin` (404 on the storefront deployment).
+
+### Why not Deployment Protection
+
+Earlier notes in this repo assumed Vercel's Deployment Protection would sit in
+front of the admin panel. It doesn't fit, for two reasons:
+
+1. **It doesn't cover the production domain on lower plans.** The default scope
+   ("Standard Protection", all plans) protects preview and generated
+   deployment URLs — `admin.<domain>` stays public. Covering production needs
+   the "All Deployments" scope, which is Pro/Enterprise, and the docs also list
+   private production deployments under a paid Pro add-on.
+2. **Its one widely-available method is wrong for shop staff.** Vercel
+   Authentication admits only people with a Vercel account on the team. DMB
+   staff (`inputer`, `viewer`) are shop employees, not Vercel team members —
+   they'd each need a Vercel account and a (billed) team seat just to reach a
+   second login form. Password Protection and Trusted IPs, which wouldn't have
+   that problem, are Enterprise / paid add-on.
+
+Deployment Protection is built to hide staging from the public, not to gate a
+panel used by people outside the Vercel org. **The app's own staff login is the
+real gate** — bcrypt cost 12, 5-failure/15-minute account lockout, DB-backed
+sessions revalidated on every request, and `token_version` invalidating old
+sessions on password change. The admin build also ships
+`<meta name="robots" content="noindex, nofollow">` (injected by the
+`admin-noindex` plugin in `vite.config.js`, admin build only) so the panel stays
+out of search results.
+
+Worth adding later if the plan allows: a Vercel WAF rate limit on
+`POST /api/admin/login`. The per-account lockout already exists, but a per-IP
+limit also covers an attacker spraying many different email addresses.
 
 ## Environment variables
 
@@ -78,13 +108,12 @@ A dev-only Vite bridge (`dev/api-bridge.js`) serves `/api/*` locally against Neo
 
 1. `npm i -g vercel` and `vercel login`.
 2. Create **two** Vercel projects from this repo (Storefront + Admin), each with the Build Command and env vars above.
-3. Admin project → add custom domain `admin.<domain>` and enable **Deployment Protection** (Settings → Deployment Protection: password / Vercel Authentication / IP allowlist).
+3. Admin project → add custom domain `admin.<domain>`. Access control is the app's own staff login — see ["Why not Deployment Protection"](#why-not-deployment-protection).
 4. Storefront project → main domain, no protection.
 5. Run the seed once against the production Neon branch.
 
 ## Pre-launch checklist
 
-- [ ] Enable **Deployment Protection** on the admin project (step 3 above). The admin sign-in form is at `admin.<domain>/login` and is not hidden by anything else — the platform gate is the only thing that keeps it off the open internet.
 - [ ] Set `STORE_WHATSAPP` in `src/config/features.js` — **still the placeholder `6281234567890`**; the product-page "Hubungi" button links to `wa.me/<this>`, so leads go nowhere until it's the shop's real number.
 - [ ] Seed the first administrator via `db/seed-staff.mjs` (`OWNER_EMAIL`/`OWNER_PASSWORD`), then change that password from **Kelola User**. (Admin auth is DB-based — there are no `VITE_ADMIN_*` env vars.)
 - [ ] Use a read-only Neon role for the storefront `DATABASE_URL`.

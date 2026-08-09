@@ -12,8 +12,8 @@ import ProductFormPage from './pages/admin/ProductFormPage'
 import StaffPage from './pages/admin/StaffPage'
 
 // Admin dashboard app — built with VITE_APP_TARGET=admin and deployed as its
-// own Vercel project behind Deployment Protection. No storefront pages are
-// imported here, and this app is never served on the public domain.
+// own Vercel project on its own subdomain. No storefront pages are imported
+// here, and this app is never served on the public domain.
 export default function AdminApp() {
   return (
     <BrowserRouter>
