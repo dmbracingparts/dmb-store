@@ -5,10 +5,9 @@ import {
 } from '@phosphor-icons/react'
 import { useAuth } from '../../context/AuthContext'
 import { useStore } from '../../store/StoreProvider'
+import { STOREFRONT_URL } from '../../config/features'
 import { formatCurrency } from '../../utils/formatCurrency'
 import { SectionCard, BarChart, BarChartSkeleton, StatRow, StatusPill, Skeleton } from '../../components/admin/ui/Bento'
-
-const STOREFRONT_URL = 'https://dmb-store.vercel.app'
 
 function RecentProductSkeleton() {
   return (

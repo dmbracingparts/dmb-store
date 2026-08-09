@@ -1,9 +1,8 @@
 import { NavLink } from 'react-router-dom'
 import { SquaresFour, Package, UsersThree, Storefront, ArrowRight } from '@phosphor-icons/react'
 import { useAuth } from '../../context/AuthContext'
+import { STOREFRONT_URL } from '../../config/features'
 import dmbLogo from '../../assets/logo-dmb.png'
-
-const STOREFRONT_URL = 'https://dmb-store.vercel.app'
 
 function GroupLabel({ children }) {
   return (
